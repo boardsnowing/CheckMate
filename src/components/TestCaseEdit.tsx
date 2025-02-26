@@ -15,12 +15,19 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   onAddTestCase,
   onSave,
 }) => {
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+
   // キーボードショートカットのイベントハンドラ
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 's') {
         event.preventDefault(); // ブラウザのデフォルトの保存動作を防ぐ
         onSave(); // 強制的に保存を実行
+      }
+      // Alt + P でプレビューモードを切り替え
+      if (event.altKey && event.key === 'p') {
+        event.preventDefault();
+        setIsPreviewMode(prev => !prev);
       }
     };
 
@@ -31,13 +38,8 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [testCases, onTestCaseChange, onSave]);
+  }, [onSave]);
 
-  const [previewMode, setPreviewMode] = useState<{
-    caseIndex: number;
-    stepIndex: number;
-    field: "step" | "expected";
-  } | null>(null);
   // テストケースを削除
   const deleteTestCase = (caseIndex: number) => {
     const updatedCases = testCases.filter((_, index) => index !== caseIndex);
@@ -84,6 +86,9 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
         >
           テストケース追加
         </button>
+        <div className="text-sm text-gray-500">
+          Alt + P でプレビュー切替
+        </div>
       </div>
 
       <table className="w-full border-collapse border border-gray-300">
@@ -152,18 +157,8 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="relative">
-                      {previewMode?.caseIndex === caseIndex &&
-                      previewMode?.stepIndex === stepIndex &&
-                      previewMode?.field === "step" ? (
+                      {isPreviewMode ? (
                         <div className="bg-white p-2 border rounded">
-                          <div className="flex justify-end mb-2">
-                            <button
-                              onClick={() => setPreviewMode(null)}
-                              className="px-2 py-1 bg-gray-500 text-white rounded text-sm"
-                            >
-                              編集に戻る
-                            </button>
-                          </div>
                           <ReactMarkdown>{step.step}</ReactMarkdown>
                         </div>
                       ) : (
@@ -175,36 +170,14 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                             }
                             className="w-full p-1 border rounded min-h-[100px]"
                           />
-                          <button
-                            onClick={() =>
-                              setPreviewMode({
-                                caseIndex,
-                                stepIndex,
-                                field: "step",
-                              })
-                            }
-                            className="mt-1 px-2 py-1 bg-blue-500 text-white rounded text-sm"
-                          >
-                            プレビュー
-                          </button>
                         </div>
                       )}
                     </div>
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="relative">
-                      {previewMode?.caseIndex === caseIndex &&
-                      previewMode?.stepIndex === stepIndex &&
-                      previewMode?.field === "expected" ? (
+                      {isPreviewMode ? (
                         <div className="bg-white p-2 border rounded">
-                          <div className="flex justify-end mb-2">
-                            <button
-                              onClick={() => setPreviewMode(null)}
-                              className="px-2 py-1 bg-gray-500 text-white rounded text-sm"
-                            >
-                              編集に戻る
-                            </button>
-                          </div>
                           <ReactMarkdown>{step.expected}</ReactMarkdown>
                         </div>
                       ) : (
@@ -221,18 +194,6 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                             }
                             className="w-full p-1 border rounded min-h-[100px]"
                           />
-                          <button
-                            onClick={() =>
-                              setPreviewMode({
-                                caseIndex,
-                                stepIndex,
-                                field: "expected",
-                              })
-                            }
-                            className="mt-1 px-2 py-1 bg-blue-500 text-white rounded text-sm"
-                          >
-                            プレビュー
-                          </button>
                         </div>
                       )}
                     </div>
