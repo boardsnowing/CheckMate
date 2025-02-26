@@ -1,4 +1,4 @@
-﻿﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
@@ -54,9 +54,20 @@ const TestCaseList: React.FC = () => {
     if (!hasEditChanges && !hasResultChanges) return;
 
     try {
+      // テストケースをエスケープ処理
+      const escapedTestCases = testCases.map(testCase => ({
+        ...testCase,
+        name: testCase.name.replace(/\n/g, '\\n').replace(/\t/g, '\\t'),
+        steps: testCase.steps.map(step => ({
+          ...step,
+          step: step.step.replace(/\n/g, '\\n').replace(/\t/g, '\\t'),
+          expected: step.expected.replace(/\n/g, '\\n').replace(/\t/g, '\\t')
+        }))
+      }));
+
       await invoke('save_test_cases', { 
         suiteId: suiteId,
-        testCases: testCases 
+        testCases: escapedTestCases 
       });
       console.log('テストケースを自動保存しました');
 
@@ -87,7 +98,19 @@ const TestCaseList: React.FC = () => {
     if (suiteId) {
       // テストケースの読み込み
       invoke<TestCase[]>('get_test_cases', { suiteId: suiteId })
-        .then((data) => setTestCases(data))
+        .then((data) => {
+          // エスケープシーケンスを削除
+          const unescapedData = data.map(testCase => ({
+            ...testCase,
+            name: testCase.name.replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
+            steps: testCase.steps.map(step => ({
+              ...step,
+              step: step.step.replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
+              expected: step.expected.replace(/\\n/g, '\n').replace(/\\t/g, '\t')
+            }))
+          }));
+          setTestCases(unescapedData);
+        })
         .catch((error) => console.error("Error fetching test cases:", error));
       
       // テストスイート名の設定
