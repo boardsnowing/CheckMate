@@ -5,7 +5,7 @@ use std::fs;
 use std::fs::read_dir;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::{command, Manager};
+use tauri::command;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Config {
@@ -25,12 +25,6 @@ fn load_config() -> Result<Config, String> {
     Ok(config)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct TestSuite {
-    id: String,
-    name: String,
-    test_case_id: Option<String>,
-}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct TestCase {
@@ -68,11 +62,19 @@ struct TestStepResult {
     comment: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct TestSuiteData {
+    id: String,
+    name: String,
+    precondition: Option<String>,
+    test_cases: Vec<TestCase>,
+}
+
 #[command]
 fn save_test_result(
     test_suite_id: String,
     _test_suite_name: String,
-    _executed_by: String, // 引数は残すが使用しない
+    _executed_by: String,
     test_results: Vec<TestCaseResult>,
     file_name: String,
 ) -> Result<(), String> {
@@ -106,52 +108,24 @@ fn save_test_result(
 }
 
 #[command]
-fn save_test_cases(suite_id: String, test_cases: Vec<TestCase>) -> Result<(), String> {
-    let file_path = std::path::PathBuf::from("test_data").join(format!("{}.json", suite_id));
+fn save_test_suite(test_suite: TestSuiteData) -> Result<(), String> {
+    let file_path = std::path::PathBuf::from("test_data").join(format!("{}.json", test_suite.id));
     fs::create_dir_all("test_data").map_err(|e| format!("Failed to create directory: {}", e))?;
 
-    let json = serde_json::to_string_pretty(&test_cases)
-        .map_err(|e| format!("Failed to serialize test cases: {}", e))?;
+    let json = serde_json::to_string_pretty(&test_suite)
+        .map_err(|e| format!("Failed to serialize test suite data: {}", e))?;
     fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
 
-    println!("Successfully saved test cases to: {}", file_path.display());
+    println!("Successfully saved test suite to: {}", file_path.display());
     Ok(())
 }
 
 #[command]
-fn get_test_cases(suite_id: String) -> Result<Vec<TestCase>, String> {
-    let file_path = std::path::PathBuf::from("test_data").join(format!("{}.json", suite_id));
-
-    if !file_path.exists() {
-        println!(
-            "File not found: {}. Creating new test case file.",
-            file_path.display()
-        );
-        return Ok(Vec::new());
-    }
-
-    let file_content =
-        fs::read_to_string(&file_path).map_err(|e| format!("Failed to read file: {}", e))?;
-
-    // BOMを除去してからJSONをパース
-    let content = file_content.trim_start_matches('\u{feff}');
-    let test_cases: Vec<TestCase> =
-        serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
-
-    // println!(
-    //     "Successfully loaded test cases from: {}",
-    //     file_path.display()
-    // );
-    Ok(test_cases)
-}
-
-#[command]
-fn get_test_suites() -> Result<Vec<TestSuite>, String> {
+fn get_test_suites() -> Result<Vec<TestSuiteData>, String> {
     let dir_path = PathBuf::from("test_data");
     if !dir_path.exists() {
         fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
     }
-
     let mut test_suites = Vec::new();
     for entry in read_dir(dir_path).map_err(|e| format!("Failed to read directory: {}", e))? {
         let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
@@ -159,22 +133,17 @@ fn get_test_suites() -> Result<Vec<TestSuite>, String> {
         if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
             if let Some(file_stem) = path.file_stem() {
                 if let Some(id) = file_stem.to_str() {
-                    // ファイルからテストケースを読み込んで最初のケースの名前を取得
                     let file_path = path.clone();
                     let file_content = fs::read_to_string(&file_path)
                         .map_err(|e| format!("Failed to read file: {}", e))?;
                     let content = file_content.trim_start_matches('\u{feff}');
-                    let test_cases: Vec<TestCase> = serde_json::from_str(content)
-                        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+                    let data: TestSuiteData =
+                    serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
                     // 最初のテストケースのIDを取得
-                    let first_test_case_id = test_cases.first().map(|tc| tc.id.clone());
+                    let first_test_case_id = data.test_cases.first().map(|tc| tc.id.clone());
 
-                    test_suites.push(TestSuite {
-                        id: id.to_string(),
-                        name: id.to_string(),
-                        test_case_id: first_test_case_id,
-                    });
+                    test_suites.push(data);
                 }
             }
         }
@@ -184,15 +153,30 @@ fn get_test_suites() -> Result<Vec<TestSuite>, String> {
 }
 
 #[command]
+fn get_test_suite(id: String) -> Result<TestSuiteData, String> {
+    let file_path = std::path::PathBuf::from("test_data").join(format!("{}.json", id));
+
+    if !file_path.exists() {
+        return Err("テストスイートが見つかりません".to_string());
+    }
+
+    let file_content = fs::read_to_string(&file_path)
+        .map_err(|e| format!("Failed to read file: {}", e))?;
+    let content = file_content.trim_start_matches('\u{feff}');
+    let data: TestSuiteData =
+        serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+    Ok(data)
+}
+
+#[command]
 fn delete_test_suite(id: String) -> Result<(), String> {
-    // テストデータファイルの削除
     let data_file_path = PathBuf::from("test_data").join(format!("{}.json", id));
     if data_file_path.exists() {
         fs::remove_file(&data_file_path)
             .map_err(|e| format!("Failed to delete test data file: {}", e))?;
     }
 
-    // テスト結果ディレクトリの削除
     let results_dir_path = PathBuf::from("test_results").join(&id);
     if results_dir_path.exists() {
         fs::remove_dir_all(&results_dir_path)
@@ -203,7 +187,7 @@ fn delete_test_suite(id: String) -> Result<(), String> {
 }
 
 #[command]
-fn rename_test_suite(id: String, new_name: String, _test_case_id: Option<String>) -> Result<(), String> {
+fn rename_test_suite(id: String, new_name: String) -> Result<(), String> {
     let dir_path = PathBuf::from("test_data");
     let file_path = dir_path.join(format!("{}.json", id));
 
@@ -211,31 +195,29 @@ fn rename_test_suite(id: String, new_name: String, _test_case_id: Option<String>
         return Err("Test suite not found".to_string());
     }
 
-    // テストケースを読み込む
     let file_content =
         fs::read_to_string(&file_path).map_err(|e| format!("Failed to read file: {}", e))?;
     let content = file_content.trim_start_matches('\u{feff}');
-    let test_cases: Vec<TestCase> =
+    let mut data: TestSuiteData =
         serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
-    // テストケースを保存（テストスイート名の変更はフロントエンド側で管理）
-    let json = serde_json::to_string_pretty(&test_cases)
-        .map_err(|e| format!("Failed to serialize test cases: {}", e))?;
+    data.name = new_name;
+
+    let json = serde_json::to_string_pretty(&data)
+        .map_err(|e| format!("Failed to serialize test suite data: {}", e))?;
     fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
 
-    // test_resultsディレクトリ内のテストスイート名のディレクトリ名も変更
-    let old_results_dir = PathBuf::from("test_results").join(&id);
-    let new_results_dir = PathBuf::from("test_results").join(&new_name);
+    // let old_results_dir = PathBuf::from("test_results").join(&id);
+    // let new_results_dir = PathBuf::from("test_results").join(&new_name);
 
-    if old_results_dir.exists() {
-        fs::rename(&old_results_dir, &new_results_dir)
-            .map_err(|e| format!("Failed to rename results directory: {}", e))?;
-    }
+    // if old_results_dir.exists() {
+    //     fs::rename(&old_results_dir, &new_results_dir)
+    //         .map_err(|e| format!("Failed to rename results directory: {}", e))?;
+    // }
 
-    // テストデータファイルの名前も変更
-    let new_file_path = dir_path.join(format!("{}.json", new_name));
-    fs::rename(&file_path, &new_file_path)
-        .map_err(|e| format!("Failed to rename test data file: {}", e))?;
+    // let new_file_path = dir_path.join(format!("{}.json", new_name));
+    // fs::rename(&file_path, &new_file_path)
+    //     .map_err(|e| format!("Failed to rename test data file: {}", e))?;
 
     Ok(())
 }
@@ -318,29 +300,27 @@ fn update_user_name(new_name: String) -> Result<(), String> {
 }
 
 #[command]
-fn create_test_suite(name: String, test_case_id: Option<String>) -> Result<TestSuite, String> {
+fn create_test_suite(name: String, test_suite_id: String, precondition: Option<String>) -> Result<TestSuiteData, String> {
     let dir_path = PathBuf::from("test_data");
     fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
 
-    let file_path = dir_path.join(format!("{}.json", name));
+    let file_path = dir_path.join(format!("{}.json", test_suite_id));
 
-    // 空のテストケース配列を作成
-    let empty_test_cases: Vec<TestCase> = Vec::new();
-    let json = serde_json::to_string_pretty(&empty_test_cases)
-        .map_err(|e| format!("Failed to serialize test cases: {}", e))?;
+    let data = TestSuiteData {
+        id: test_suite_id.clone(),
+        name: name.clone(),
+        test_cases: Vec::new(),
+        precondition: precondition.clone(),
+    };
+    let json = serde_json::to_string_pretty(&data)
+        .map_err(|e| format!("Failed to serialize test suite data: {}", e))?;
     fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
 
-    let test_suite = TestSuite {
-        id: name.clone(),
-        name,
-        test_case_id,
-    };
 
-    Ok(test_suite)
+    Ok(data)
 }
 
 fn main() {
-    // 設定ファイルを読み込む
     if let Ok(config) = load_config() {
         *CONFIG.lock().unwrap() = Some(config);
     } else {
@@ -351,10 +331,10 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .invoke_handler(tauri::generate_handler![
-            get_test_cases,
-            save_test_cases,
             save_test_result,
+            save_test_suite,
             get_test_suites,
+            get_test_suite,
             create_test_suite,
             rename_test_suite,
             delete_test_suite,

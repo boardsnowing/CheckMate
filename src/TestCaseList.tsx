@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
-import { TestCase } from "./types/TestCase";
+import { TestCase, TestSuite } from "./types/TestCase";
+import PreconditionEdit from "./components/PreconditionEdit";
+import PreconditionView from "./components/PreconditionView";
 import TestCaseEdit from "./components/TestCaseEdit";
 import TestCaseResult from "./components/TestCaseResult";
 import TestCaseHistory from "./components/TestCaseHistory";
@@ -17,11 +19,13 @@ const TestCaseList: React.FC = () => {
   const [hasResultChanges, setHasResultChanges] = useState<boolean>(false);
   const [editStartTime, setEditStartTime] = useState<number | null>(null);
   const [suiteName, setSuiteName] = useState<string>("");
+  const [precondition, setPrecondition] = useState<string>("");
+  const [isPreconditionEditOpen, setIsPreconditionEditOpen] = useState(false);
 
   // 新しいテストケースを追加
   const addTestCase = () => {
     const newTestCase: TestCase = {
-      id: `tc-${Date.now()}`,
+      id: `tc-${testCases.length + 1}`,
       name: "新しいテストケース",
       steps: [{
         step: "手順を入力",
@@ -49,9 +53,9 @@ const TestCaseList: React.FC = () => {
     setHasResultChanges(true);
   };
 
-  // テストケースを保存する関数
+  // テストスイートを保存する関数
   const saveTestCases = async () => {
-    if (!hasEditChanges && !hasResultChanges) return;
+    if (!hasEditChanges && !hasResultChanges && !precondition) return;
 
     try {
       // テストケースをエスケープ処理
@@ -65,11 +69,16 @@ const TestCaseList: React.FC = () => {
         }))
       }));
 
-      await invoke('save_test_cases', { 
-        suiteId: suiteId,
-        testCases: escapedTestCases 
+      // TestSuiteとして保存
+      await invoke('save_test_suite', {
+        testSuite: {
+          id: suiteId,
+          name: suiteName,
+          precondition: precondition,
+          test_cases: escapedTestCases
+        }
       });
-      console.log('テストケースを自動保存しました');
+      console.log('テストスイートを自動保存しました');
 
       // 通知を送信する
       let permissionGranted = await isPermissionGranted();
@@ -81,7 +90,7 @@ const TestCaseList: React.FC = () => {
       if (permissionGranted) {
         await sendNotification({
           title: "保存完了",
-          body: "テストケースが正常に保存されました"
+          body: "テストスイートが正常に保存されました"
         });
       }
       
@@ -89,18 +98,30 @@ const TestCaseList: React.FC = () => {
       setHasResultChanges(false);
       setEditStartTime(null);
     } catch (error) {
-      console.error('テストケースの保存に失敗しました:', error);
+      console.error('テストスイートの保存に失敗しました:', error);
+    }
+  };
+
+  // 前提条件の保存
+  const savePrecondition = async (newPrecondition: string) => {
+    try {
+      setPrecondition(newPrecondition);
+      setHasEditChanges(true);
+      // 前提条件の変更を含めてテストスイート全体を保存
+      await saveTestCases();
+    } catch (error) {
+      console.error('前提条件の保存に失敗しました:', error);
     }
   };
 
   // 初期データの読み込み
   useEffect(() => {
     if (suiteId) {
-      // テストケースの読み込み
-      invoke<TestCase[]>('get_test_cases', { suiteId: suiteId })
+      // テストスイート全体の読み込み
+      invoke<TestSuite>('get_test_suite', { suiteId: suiteId })
         .then((data) => {
           // エスケープシーケンスを削除
-          const unescapedData = data.map(testCase => ({
+          const unescapedTestCases = data.test_cases.map(testCase => ({
             ...testCase,
             name: testCase.name.replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
             steps: testCase.steps.map(step => ({
@@ -109,12 +130,11 @@ const TestCaseList: React.FC = () => {
               expected: step.expected.replace(/\\n/g, '\n').replace(/\\t/g, '\t')
             }))
           }));
-          setTestCases(unescapedData);
+          setTestCases(unescapedTestCases);
+          setPrecondition(data.precondition || '');
+          setSuiteName(data.name);
         })
-        .catch((error) => console.error("Error fetching test cases:", error));
-      
-      // テストスイート名の設定
-      setSuiteName(`テストスイート ${suiteId}`);
+        .catch((error) => console.error("Error fetching test suite:", error));
     }
   }, [suiteId]);
 
@@ -170,7 +190,19 @@ const TestCaseList: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">テストケース一覧（スイート: {suiteId}）</h2>
+      <h2 className="text-xl font-bold mb-4">テストケース一覧（{suiteName}）</h2>
+      
+      <PreconditionView
+        precondition={precondition}
+        onEdit={() => setIsPreconditionEditOpen(true)}
+      />
+
+      <PreconditionEdit
+        isOpen={isPreconditionEditOpen}
+        onClose={() => setIsPreconditionEditOpen(false)}
+        onSave={savePrecondition}
+        initialPrecondition={precondition}
+      />
       <div className="mb-4">
         <div className="flex justify-between items-center">
           <button 

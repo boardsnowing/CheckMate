@@ -1,24 +1,18 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { confirm } from "@tauri-apps/plugin-dialog";
-
-type TestSuite = {
-  id: string;
-  name: string;
-  test_case_id?: string;
-};
+import { TestSuite } from "./types/TestCase";
 
 export default function TestSuiteList() {
   const [testSuites, setTestSuites] = useState<TestSuite[]>([]);
   const [filter, setFilter] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newSuiteName, setNewSuiteName] = useState("");
-  const [newTestCaseId, setNewTestCaseId] = useState("");
+  const [newtestSuiteId, setNewtestSuiteId] = useState("");
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [selectedSuite, setSelectedSuite] = useState<TestSuite | null>(null);
   const [renameSuiteName, setRenameSuiteName] = useState("");
-  const [renameTestCaseId, setRenameTestCaseId] = useState("");
   const [userName, setUserName] = useState("");
   const [isUserNameDialogOpen, setIsUserNameDialogOpen] = useState(false);
   const [newUserName, setNewUserName] = useState("");
@@ -66,11 +60,13 @@ export default function TestSuiteList() {
     try {
       const newSuite = await invoke<TestSuite>("create_test_suite", {
         name: newSuiteName,
-        testCaseId: newTestCaseId.trim() || undefined,
+        testSuiteId: newtestSuiteId,
+        precondition: "",
       });
       setTestSuites([...testSuites, newSuite]);
       setIsAddDialogOpen(false);
       setNewSuiteName("");
+      setNewtestSuiteId("");
     } catch (error) {
       console.error("Failed to create test suite:", error);
     }
@@ -78,8 +74,7 @@ export default function TestSuiteList() {
 
   const openRenameDialog = (suite: TestSuite) => {
     setSelectedSuite(suite);
-      setRenameSuiteName(suite.name);
-      setRenameTestCaseId(suite.test_case_id || "");
+    setRenameSuiteName(suite.name);
     setIsRenameDialogOpen(true);
   };
 
@@ -90,12 +85,11 @@ export default function TestSuiteList() {
       await invoke("rename_test_suite", {
         id: selectedSuite.id,
         newName: renameSuiteName,
-        testCaseId: renameTestCaseId.trim() || undefined,
       });
 
       setTestSuites(testSuites.map(suite =>
         suite.id === selectedSuite.id
-          ? { ...suite, name: renameSuiteName, test_case_id: renameTestCaseId || undefined }
+          ? { ...suite, name: renameSuiteName }
           : suite
       ));
       setIsRenameDialogOpen(false);
@@ -143,15 +137,10 @@ export default function TestSuiteList() {
 
       {/* フィルタリング */}
       <div className="relative mb-4 max-w-2xl mx-auto">
-        {/* <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg className="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-          </svg>
-        </div> */}
         <input
           type="text"
           placeholder="テストスイートを検索..."
-        className="border border-gray-300 rounded-lg pl-8 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+          className="border border-gray-300 rounded-lg pl-8 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
@@ -177,7 +166,7 @@ export default function TestSuiteList() {
                   onDoubleClick={() => navigate(`/test-cases/${suite.id}`)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">{suite.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{suite.test_case_id || "-"}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{suite.id}</td>
                   <td className="px-6 py-4 text-center whitespace-nowrap">
                     <button
                       className="inline-flex items-center px-3 py-1.5 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 mr-2 text-sm transition-colors duration-150"
@@ -209,9 +198,6 @@ export default function TestSuiteList() {
         className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 mt-4 max-w-2xl mx-auto rounded-lg shadow-sm transition-colors duration-150 flex items-center justify-center" 
         onClick={() => setIsAddDialogOpen(true)}
       >
-        {/* <svg className="h-3.5 w-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-        </svg> */}
         <span>テストスイートを追加</span>
       </button>
 
@@ -220,20 +206,24 @@ export default function TestSuiteList() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-4 rounded-lg">
             <h2 className="text-lg font-bold mb-4">新しいテストスイート</h2>
-            <input
-              type="text"
-              value={newSuiteName}
-              onChange={(e) => setNewSuiteName(e.target.value)}
-              placeholder="テストスイート名"
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              value={newTestCaseId}
-              onChange={(e) => setNewTestCaseId(e.target.value)}
-              placeholder="テスト管理番号（任意）"
-              className="border p-2 w-full mb-4"
-            />
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={newSuiteName}
+                onChange={(e) => setNewSuiteName(e.target.value)}
+                placeholder="テストスイート名"
+                className="border p-2 w-full"
+                required
+              />
+              <input
+                type="text"
+                value={newtestSuiteId}
+                onChange={(e) => setNewtestSuiteId(e.target.value)}
+                placeholder="テスト管理番号"
+                className="border p-2 w-full"
+                required
+              />
+            </div>
             <div className="flex justify-end gap-2">
               <button
                 className="bg-gray-500 text-white p-2"
@@ -247,6 +237,7 @@ export default function TestSuiteList() {
               <button
                 className="bg-blue-500 text-white p-2"
                 onClick={addTestSuite}
+                disabled={!newSuiteName.trim() || !newtestSuiteId.trim()}
               >
                 追加
               </button>
@@ -298,14 +289,8 @@ export default function TestSuiteList() {
               value={renameSuiteName}
               onChange={(e) => setRenameSuiteName(e.target.value)}
               placeholder="新しいテストスイート名"
-              className="border p-2 w-full mb-2"
-            />
-            <input
-              type="text"
-              value={renameTestCaseId}
-              onChange={(e) => setRenameTestCaseId(e.target.value)}
-              placeholder="テスト管理番号（任意）"
               className="border p-2 w-full mb-4"
+              required
             />
             <div className="flex justify-end gap-2">
               <button
@@ -320,6 +305,7 @@ export default function TestSuiteList() {
               <button
                 className="bg-blue-500 text-white p-2"
                 onClick={renameTestSuite}
+                disabled={!renameSuiteName.trim()}
               >
                 変更
               </button>
@@ -327,7 +313,6 @@ export default function TestSuiteList() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

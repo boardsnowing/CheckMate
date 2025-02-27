@@ -9,3 +9,10 @@ export interface TestCase {
   name: string;
   steps: TestStep[];
 }
+
+export interface TestSuite {
+  id: string;
+  name: string;
+  precondition: string;
+  test_cases: TestCase[];
+}
