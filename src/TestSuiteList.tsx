@@ -151,8 +151,8 @@ export default function TestSuiteList() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">テストスイート名</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">テスト管理番号</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">テストスイート名</th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
             </tr>
           </thead>
@@ -165,8 +165,8 @@ export default function TestSuiteList() {
                   className="hover:bg-gray-50 transition-colors duration-150 ease-in-out cursor-pointer"
                   onDoubleClick={() => navigate(`/test-cases/${suite.id}`)}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">{suite.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-500">{suite.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{suite.name}</td>
                   <td className="px-6 py-4 text-center whitespace-nowrap">
                     <button
                       className="inline-flex items-center px-3 py-1.5 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 mr-2 text-sm transition-colors duration-150"
