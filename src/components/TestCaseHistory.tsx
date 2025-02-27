@@ -131,6 +131,27 @@ ${testCasesXml}  </testsuite>
     return new Date(dateString).toLocaleString("ja-JP");
   };
 
+  const calculateStatusCounts = (result: TestResult) => {
+    const counts = {
+      OK: 0,
+      NG: 0,
+      NA: 0,
+      Unmarked: 0
+    };
+
+    // 実行済みの結果を集計
+    result.test_results.forEach(testResult => {
+      testResult.results.forEach(result => {
+        if (result.status === "OK") counts.OK++;
+        else if (result.status === "NG") counts.NG++;
+        else if (result.status === "N/A") counts.NA++;
+        else counts.Unmarked++;
+      });
+    });
+
+    return counts;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col space-y-4">
@@ -176,9 +197,30 @@ ${testCasesXml}  </testsuite>
         <div className="bg-white p-4 rounded shadow">
           {selectedResult ? (
             <div>
-              <h3 className="text-lg font-semibold mb-4">
-                テスト結果詳細: {selectedResult.test_run_name}
-              </h3>
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold">
+                  テスト結果詳細: {selectedResult.test_run_name}
+                </h3>
+                {(() => {
+                  const counts = calculateStatusCounts(selectedResult);
+                  return (
+                    <div className="mt-2 flex space-x-4">
+                      <div className="px-3 py-1 bg-green-100 text-green-800 rounded">
+                        OK: {counts.OK}
+                      </div>
+                      <div className="px-3 py-1 bg-red-100 text-red-800 rounded">
+                        NG: {counts.NG}
+                      </div>
+                      <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded">
+                        N/A: {counts.NA}
+                      </div>
+                      <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded">
+                        未実施: {counts.Unmarked}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100">
