@@ -48,7 +48,7 @@ const PreconditionView: React.FC<PreconditionViewProps> = ({
         </button>
       </div>
       {isExpanded && (
-        <div className="p-4">
+        <div className="markdown">
           <ReactMarkdown>{precondition}</ReactMarkdown>
         </div>
       )}
