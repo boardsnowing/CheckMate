@@ -132,16 +132,13 @@ fn get_test_suites() -> Result<Vec<TestSuiteData>, String> {
         let path = entry.path();
         if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
             if let Some(file_stem) = path.file_stem() {
-                if let Some(id) = file_stem.to_str() {
+                if let Some(_id) = file_stem.to_str() {
                     let file_path = path.clone();
                     let file_content = fs::read_to_string(&file_path)
                         .map_err(|e| format!("Failed to read file: {}", e))?;
                     let content = file_content.trim_start_matches('\u{feff}');
                     let data: TestSuiteData =
                     serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
-
-                    // 最初のテストケースのIDを取得
-                    let first_test_case_id = data.test_cases.first().map(|tc| tc.id.clone());
 
                     test_suites.push(data);
                 }

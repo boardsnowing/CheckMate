@@ -17,7 +17,7 @@ const TestCaseList: React.FC = () => {
   const [currentMode, setCurrentMode] = useState<Mode>("edit");
   const [hasEditChanges, setHasEditChanges] = useState<boolean>(false);
   const [hasResultChanges, setHasResultChanges] = useState<boolean>(false);
-  const [editStartTime, setEditStartTime] = useState<number | null>(null);
+  const [autoSaveStartTime, setAutoSaveStartTime] = useState<number | null>(null);
   const [suiteName, setSuiteName] = useState<string>("");
   const [precondition, setPrecondition] = useState<string>("");
   const [isPreconditionEditOpen, setIsPreconditionEditOpen] = useState(false);
@@ -40,7 +40,7 @@ const TestCaseList: React.FC = () => {
   const handleTestCaseChange = (updatedCases: TestCase[]) => {
     setTestCases(updatedCases);
     if (!hasEditChanges) {
-      setEditStartTime(Date.now());
+      setAutoSaveStartTime(Date.now());
     }
     setHasEditChanges(true);
   };
@@ -50,14 +50,19 @@ const TestCaseList: React.FC = () => {
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps[stepIndex].result = result;
     setTestCases(updatedCases);
+    if(!hasResultChanges)
+    {
+      setAutoSaveStartTime(Date.now());
+    }
     setHasResultChanges(true);
   };
 
   // テストスイートを保存する関数
   const saveTestCases = async () => {
-    if (!hasEditChanges && !hasResultChanges && !precondition) return;
+    if (!hasEditChanges && !hasResultChanges) return;
 
     try {
+      const escapedPrecondition = precondition.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
       // テストケースをエスケープ処理
       const escapedTestCases = testCases.map(testCase => ({
         ...testCase,
@@ -74,7 +79,7 @@ const TestCaseList: React.FC = () => {
         testSuite: {
           id: suiteId,
           name: suiteName,
-          precondition: precondition,
+          precondition: escapedPrecondition,
           test_cases: escapedTestCases
         }
       });
@@ -96,7 +101,7 @@ const TestCaseList: React.FC = () => {
       
       setHasEditChanges(false);
       setHasResultChanges(false);
-      setEditStartTime(null);
+      setAutoSaveStartTime(null);
     } catch (error) {
       console.error('テストスイートの保存に失敗しました:', error);
     }
@@ -107,8 +112,7 @@ const TestCaseList: React.FC = () => {
     try {
       setPrecondition(newPrecondition);
       setHasEditChanges(true);
-      // 前提条件の変更を含めてテストスイート全体を保存
-      await saveTestCases();
+      setAutoSaveStartTime(Date.now());
     } catch (error) {
       console.error('前提条件の保存に失敗しました:', error);
     }
@@ -118,7 +122,7 @@ const TestCaseList: React.FC = () => {
   useEffect(() => {
     if (suiteId) {
       // テストスイート全体の読み込み
-      invoke<TestSuite>('get_test_suite', { suiteId: suiteId })
+      invoke<TestSuite>('get_test_suite', { id: suiteId })
         .then((data) => {
           // エスケープシーケンスを削除
           const unescapedTestCases = data.test_cases.map(testCase => ({
@@ -181,12 +185,21 @@ const TestCaseList: React.FC = () => {
   useEffect(() => {
     if (!hasEditChanges && !hasResultChanges) return;
 
-    const now = Date.now();
-    if (editStartTime && now - editStartTime >= 60000){
-      saveTestCases();
-    }
+  }, [hasEditChanges, hasResultChanges, precondition]);
 
-  }, [hasEditChanges, hasResultChanges]);
+  //保存タイマー処理
+  useEffect(() => {
+    if (!autoSaveStartTime) return;
+
+    const timer = setTimeout(() => {
+      saveTestCases();
+    }, 10000);
+
+    return () => {
+      clearTimeout(timer);
+      setAutoSaveStartTime(null);
+    }
+  }, [autoSaveStartTime]);
 
   return (
     <div className="p-4">
