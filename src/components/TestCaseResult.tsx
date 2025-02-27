@@ -32,7 +32,26 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
   const [fileName, setFileName] = useState<string>("");
   const [previousResults, setPreviousResults] = useState<any[]>([]);
   const [selectedResult, setSelectedResult] = useState<string>("");
-  const [showPreviews, setShowPreviews] = useState<{ [key: string]: boolean }>({});
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+
+  // キーボードショートカットのイベントハンドラ
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Alt + P でプレビューモードを切り替え
+      if (event.altKey && event.key === 'p') {
+        event.preventDefault();
+        setIsPreviewMode(prev => !prev);
+      }
+    };
+
+    // イベントリスナーを追加
+    document.addEventListener('keydown', handleKeyDown);
+
+    // クリーンアップ関数
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isPreviewMode]);
 
   useEffect(() => {
     loadPreviousResults();
@@ -68,6 +87,12 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
 
   return (
     <div>
+      <div className="flex justify-between items-center mb-4">
+        <div></div>
+        <div className="text-sm text-gray-500">
+          Alt + P でプレビュー切替
+        </div>
+      </div>
       <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-200">
@@ -106,12 +131,24 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="prose">
-                      <ReactMarkdown>{step.step}</ReactMarkdown>
+                      {isPreviewMode ? (
+                        <div className="bg-white p-2 border rounded">
+                          <ReactMarkdown>{step.step}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <ReactMarkdown>{step.step}</ReactMarkdown>
+                      )}
                     </div>
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="prose">
-                      <ReactMarkdown>{step.expected}</ReactMarkdown>
+                      {isPreviewMode ? (
+                        <div className="bg-white p-2 border rounded">
+                          <ReactMarkdown>{step.expected}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <ReactMarkdown>{step.expected}</ReactMarkdown>
+                      )}
                     </div>
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
@@ -143,22 +180,7 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                         </button>
                       </div>
                       <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">コメント</span>
-                          <button
-                            className="text-sm text-blue-500 hover:text-blue-600"
-                            onClick={() => {
-                              const key = `${caseIndex}-${stepIndex}`;
-                              setShowPreviews(prev => ({
-                                ...prev,
-                                [key]: !prev[key]
-                              }));
-                            }}
-                          >
-                            {showPreviews[`${caseIndex}-${stepIndex}`] ? 'エディタを表示' : 'プレビューを表示'}
-                          </button>
-                        </div>
-                        {showPreviews[`${caseIndex}-${stepIndex}`] ? (
+                        {isPreviewMode ? (
                           <div className="prose border rounded p-2 bg-gray-50 min-h-[100px]">
                             <ReactMarkdown>
                               {comments[`${caseIndex}-${stepIndex}`] || '*コメントなし*'}
@@ -167,7 +189,7 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                         ) : (
                           <textarea
                             placeholder="Markdownでコメントを入力"
-                            className="px-2 py-1 border rounded w-full min-h-[100px] font-mono"
+                            className="px-2 py-1 border rounded w-[40ch] h-[6em] font-mono"
                             value={comments[`${caseIndex}-${stepIndex}`] || ""}
                             onChange={(e) =>
                               setComments({
