@@ -271,7 +271,7 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                           </div>
                         ) : (
                           <textarea
-                            placeholder="Markdownでコメントを入力"
+                            placeholder="コメント"
                             className="px-2 py-1 border rounded w-[40ch] h-[6em] font-mono"
                             value={comments[`${caseIndex}-${stepIndex}`] || ""}
                             onChange={(e) =>

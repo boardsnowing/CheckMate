@@ -61,8 +61,8 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   const handleInsertStep = (caseIndex: number, stepIndex: number) => {
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps.splice(stepIndex + 1, 0, {
-      step: "新しい手順",
-      expected: "期待値"
+      step: "",
+      expected: ""
     });
     onTestCaseChange(updatedCases);
   };
@@ -141,7 +141,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{testCase.name}</ReactMarkdown>
                     </div>
                   ) : (
-                    <textarea
+                    <textarea placeholder="テストケースの概要を入力"
                       value={testCase.name}
                       onChange={(e) => {
                         const updatedCases = [...testCases];
@@ -184,7 +184,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                         </div>
                       ) : (
                         <div>
-                          <textarea
+                          <textarea placeholder="手順"
                             value={step.step}
                             onChange={(e) =>
                               handleUpdateStep(caseIndex, stepIndex, "step", e.target.value)
@@ -203,7 +203,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                         </div>
                       ) : (
                         <div>
-                          <textarea
+                          <textarea placeholder="期待値"
                             value={step.expected}
                             onChange={(e) =>
                               handleUpdateStep(
