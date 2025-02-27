@@ -135,6 +135,11 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   </div>
                 </td>
                 <td className="border border-gray-300 px-2 py-1" colSpan={2}>
+                  {isPreviewMode ? (
+                    <div className="p-1">
+                      <ReactMarkdown>{testCase.name}</ReactMarkdown>
+                    </div>
+                  ) : (
                     <textarea
                       value={testCase.name}
                       onChange={(e) => {
@@ -144,6 +149,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                       }}
                       className="w-full p-1 border rounded h-[6em]"
                     />
+                  )}
                 </td>
               </tr>
               {/* テストケースのステップ */}
@@ -172,7 +178,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="relative">
                       {isPreviewMode ? (
-                        <div className="bg-white p-2 border rounded">
+                        <div>
                           <ReactMarkdown>{step.step}</ReactMarkdown>
                         </div>
                       ) : (
@@ -191,7 +197,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="relative">
                       {isPreviewMode ? (
-                        <div className="bg-white p-2 border rounded">
+                        <div>
                           <ReactMarkdown>{step.expected}</ReactMarkdown>
                         </div>
                       ) : (
