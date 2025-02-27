@@ -2,6 +2,7 @@ import { TestCase } from "../types/TestCase";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface TestCaseResultProps {
   testCases: TestCase[];
@@ -202,13 +203,15 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                 key={`${caseIndex}-name`}
                 className="border border-gray-300 bg-gray-100 font-semibold"
               >
+                <td className="border border-gray-300 px-2 py-1">
+                  <span className="mr-2">{caseIndex + 1}.</span>
+                </td>
                 <td
-                  colSpan={4}
+                  colSpan={3}
                   className="border border-gray-300 px-2 py-1"
                 >
-                  <div className="flex items-center">
-                    <span className="mr-2">{caseIndex + 1}.</span>
-                    <span>{testCase.name}</span>
+                  <div className="prose flex items-center">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{testCase.name}</ReactMarkdown>
                   </div>
                 </td>
               </tr>
@@ -223,12 +226,12 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="prose">
-                        <ReactMarkdown>{step.step}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.step}</ReactMarkdown>
                     </div>
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="prose">
-                        <ReactMarkdown>{step.expected}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.expected}</ReactMarkdown>
                     </div>
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
@@ -262,7 +265,7 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                       <div className="space-y-2">
                         {isPreviewMode ? (
                           <div className="prose p-2 min-h-[100px]">
-                            <ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
                               {comments[`${caseIndex}-${stepIndex}`] || '*コメントなし*'}
                             </ReactMarkdown>
                           </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { TestCase } from "../types/TestCase";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
@@ -200,17 +201,19 @@ ${testCasesXml}  </testsuite>
                             className="border border-gray-300 px-4 py-2"
                             rowSpan={testResult.results.length}
                           >
-                            {testCase?.name || "不明なテストケース"}
+                            <div>
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{testCase?.name || "不明なテストケース"}</ReactMarkdown>                              
+                            </div>
                           </td>
                         )}
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="prose">
-                            <ReactMarkdown>{result.step}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.step}</ReactMarkdown>
                           </div>
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="prose">
-                            <ReactMarkdown>{result.expected}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.expected}</ReactMarkdown>
                           </div>
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
@@ -228,7 +231,7 @@ ${testCasesXml}  </testsuite>
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="prose">
-                            <ReactMarkdown>{result.comment}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.comment}</ReactMarkdown>
                           </div>
                         </td>
                       </tr>

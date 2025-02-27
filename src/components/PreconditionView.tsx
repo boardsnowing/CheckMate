@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface PreconditionViewProps {
   precondition?: string;
@@ -49,7 +50,7 @@ const PreconditionView: React.FC<PreconditionViewProps> = ({
       </div>
       {isExpanded && (
         <div className="markdown">
-          <ReactMarkdown>{precondition}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{precondition}</ReactMarkdown>
         </div>
       )}
     </div>

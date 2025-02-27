@@ -125,6 +125,7 @@ const TestCaseList: React.FC = () => {
       invoke<TestSuite>('get_test_suite', { id: suiteId })
         .then((data) => {
           // エスケープシーケンスを削除
+          const unescapedPrecondition = data.precondition.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
           const unescapedTestCases = data.test_cases.map(testCase => ({
             ...testCase,
             name: testCase.name.replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
@@ -135,7 +136,7 @@ const TestCaseList: React.FC = () => {
             }))
           }));
           setTestCases(unescapedTestCases);
-          setPrecondition(data.precondition || '');
+          setPrecondition(unescapedPrecondition || '');
           setSuiteName(data.name);
         })
         .catch((error) => console.error("Error fetching test suite:", error));

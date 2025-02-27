@@ -1,5 +1,6 @@
 import { TestCase } from "../types/TestCase";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useState, useEffect } from "react";
 
 interface TestCaseEditProps {
@@ -136,8 +137,8 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 </td>
                 <td className="border border-gray-300 px-2 py-1" colSpan={2}>
                   {isPreviewMode ? (
-                    <div className="p-1">
-                      <ReactMarkdown>{testCase.name}</ReactMarkdown>
+                    <div className="markdown p-1">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{testCase.name}</ReactMarkdown>
                     </div>
                   ) : (
                     <textarea
@@ -178,8 +179,8 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="relative">
                       {isPreviewMode ? (
-                        <div>
-                          <ReactMarkdown>{step.step}</ReactMarkdown>
+                        <div className="markdown">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.step}</ReactMarkdown>
                         </div>
                       ) : (
                         <div>
@@ -197,8 +198,8 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="relative">
                       {isPreviewMode ? (
-                        <div>
-                          <ReactMarkdown>{step.expected}</ReactMarkdown>
+                        <div className="markdown">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.expected}</ReactMarkdown>
                         </div>
                       ) : (
                         <div>
