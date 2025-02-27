@@ -46,10 +46,20 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
     onTestCaseChange(updatedCases);
   };
 
-  // テストケースにステップを追加
+  // テストケースにステップを追加（末尾に追加）
   const addStep = (caseIndex: number) => {
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps.push({
+      step: "新しい手順",
+      expected: "期待値"
+    });
+    onTestCaseChange(updatedCases);
+  };
+
+  // テストケースの特定の位置にステップを挿入
+  const handleInsertStep = (caseIndex: number, stepIndex: number) => {
+    const updatedCases = [...testCases];
+    updatedCases[caseIndex].steps.splice(stepIndex + 1, 0, {
       step: "新しい手順",
       expected: "期待値"
     });
@@ -94,7 +104,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
       <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-200">
-            <th className="border border-gray-300 px-2 py-1">No</th>
+            <th className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">No</th>
             <th className="border border-gray-300 px-2 py-1">手順</th>
             <th className="border border-gray-300 px-2 py-1">期待値</th>
           </tr>
@@ -107,12 +117,24 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 key={`${caseIndex}-name`}
                 className="border border-gray-300 bg-gray-100 font-semibold"
               >
-                <td
-                  colSpan={3}
-                  className="border border-gray-300 px-2 py-1 flex justify-between items-center"
-                >
-                  <div className="flex items-center">
-                    <span className="mr-2">{caseIndex + 1}.</span>
+                <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
+                  <div className="flex flex-col space-y-1">
+                    <span>{caseIndex + 1}.</span>
+                    <button
+                      onClick={() => addStep(caseIndex)}
+                      className="px-1 py-0.5 bg-blue-500 text-white rounded text-xs"
+                    >
+                      ステップ追加
+                    </button>
+                    <button
+                      onClick={() => deleteTestCase(caseIndex)}
+                      className="px-1 py-0.5 bg-red-500 text-white rounded text-xs"
+                    >
+                      ステップ削除
+                    </button>
+                  </div>
+                </td>
+                <td className="border border-gray-300 px-2 py-1" colSpan={2}>
                     <input
                       type="text"
                       value={testCase.name}
@@ -121,23 +143,8 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                         updatedCases[caseIndex].name = e.target.value;
                         onTestCaseChange(updatedCases);
                       }}
-                      className="p-1 border rounded"
+                      className="p-1 border rounded w-full"
                     />
-                  </div>
-                  <div>
-                    <button
-                      onClick={() => addStep(caseIndex)}
-                      className="px-2 py-1 bg-blue-500 text-white rounded mr-2"
-                    >
-                      ステップ追加
-                    </button>
-                    <button
-                      onClick={() => deleteTestCase(caseIndex)}
-                      className="px-2 py-1 bg-red-500 text-white rounded"
-                    >
-                      削除
-                    </button>
-                  </div>
                 </td>
               </tr>
               {/* テストケースのステップ */}
@@ -146,14 +153,22 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   key={`${caseIndex}-step-${stepIndex}`}
                   className="border border-gray-300"
                 >
-                  <td className="border border-gray-300 px-2 py-1 flex justify-between items-center">
-                    <span>{`${caseIndex + 1}-${stepIndex + 1}`}</span>
-                    <button
-                      onClick={() => deleteStep(caseIndex, stepIndex)}
-                      className="px-2 py-1 bg-red-500 text-white rounded text-sm"
-                    >
-                      削除
-                    </button>
+                  <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
+                    <div className="flex flex-col space-y-1">
+                      <span className="text-sm">{`${caseIndex + 1}-${stepIndex + 1}`}</span>
+                      <button
+                        onClick={() => handleInsertStep(caseIndex, stepIndex)}
+                        className="px-1 py-0.5 bg-blue-500 text-white rounded text-xs"
+                      >
+                        挿入
+                      </button>
+                      <button
+                        onClick={() => deleteStep(caseIndex, stepIndex)}
+                        className="px-1 py-0.5 bg-red-500 text-white rounded text-xs"
+                      >
+                        削除
+                      </button>
+                    </div>
                   </td>
                   <td className="border border-gray-300 px-2 py-1">
                     <div className="relative">
@@ -168,7 +183,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                             onChange={(e) =>
                               handleUpdateStep(caseIndex, stepIndex, "step", e.target.value)
                             }
-                            className="w-full p-1 border rounded min-h-[100px]"
+                            className="w-full p-1 border rounded h-[6em]"
                           />
                         </div>
                       )}
@@ -192,7 +207,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                                 e.target.value
                               )
                             }
-                            className="w-full p-1 border rounded min-h-[100px]"
+                            className="w-full p-1 border rounded h-[6em]"
                           />
                         </div>
                       )}
