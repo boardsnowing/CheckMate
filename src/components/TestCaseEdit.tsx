@@ -135,15 +135,14 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   </div>
                 </td>
                 <td className="border border-gray-300 px-2 py-1" colSpan={2}>
-                    <input
-                      type="text"
+                    <textarea
                       value={testCase.name}
                       onChange={(e) => {
                         const updatedCases = [...testCases];
                         updatedCases[caseIndex].name = e.target.value;
                         onTestCaseChange(updatedCases);
                       }}
-                      className="p-1 border rounded w-full"
+                      className="w-full p-1 border rounded h-[6em]"
                     />
                 </td>
               </tr>
