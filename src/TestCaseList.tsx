@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
@@ -117,6 +117,45 @@ const TestCaseList: React.FC = () => {
       setSuiteName(`テストスイート ${suiteId}`);
     }
   }, [suiteId]);
+
+  // キーボードショートカットの設定
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl + Shift + キーの組み合わせを検出
+      if (event.ctrlKey && event.shiftKey) {
+        switch (event.key.toLowerCase()) {
+          case 'e':
+            setCurrentMode("edit");
+            break;
+          case 't':
+            setCurrentMode("test");
+            break;
+          case 'w':
+            setCurrentMode("history");
+            break;
+        }
+      }
+      // Ctrl + Tab でモードを循環
+      if (event.ctrlKey && event.key === "Tab") {
+        event.preventDefault(); // ブラウザのデフォルトのタブ切り替えを防止
+        setCurrentMode(prevMode => {
+          switch (prevMode) {
+            case "edit":
+              return "test";
+            case "test":
+              return "history";
+            case "history":
+              return "edit";
+            default:
+              return "edit";
+          }
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // 変更監視と自動保存
   useEffect(() => {
