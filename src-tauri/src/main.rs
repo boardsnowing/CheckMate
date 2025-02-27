@@ -138,10 +138,10 @@ fn get_test_cases(suite_id: String) -> Result<Vec<TestCase>, String> {
     let test_cases: Vec<TestCase> =
         serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
-    println!(
-        "Successfully loaded test cases from: {}",
-        file_path.display()
-    );
+    // println!(
+    //     "Successfully loaded test cases from: {}",
+    //     file_path.display()
+    // );
     Ok(test_cases)
 }
 
