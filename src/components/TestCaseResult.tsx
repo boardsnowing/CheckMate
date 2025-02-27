@@ -273,13 +273,28 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                 return;
               }
 
+              const fullFileName = `${fileName.trim()}.json`;
               try {
+                // ファイルの存在確認
+                const exists = await invoke<boolean>("check_test_result_exists", {
+                  testSuiteId,
+                  fileName: fullFileName,
+                });
+
+                if (exists) {
+                  // 上書き確認
+                  if (!window.confirm("同名のファイルが既に存在します。上書きしますか？")) {
+                    return;
+                  }
+                }
+
+                // テスト結果を保存
                 await invoke("save_test_result", {
                   testSuiteId,
                   testSuiteName,
                   executedBy: "tester1", // TODO: ログインユーザー名を使用
                   testResults,
-                  fileName: `${fileName.trim()}.json`,
+                  fileName: fullFileName,
                 });
                 alert("テスト結果を保存しました");
                 await loadPreviousResults(); // 保存後にリストを更新

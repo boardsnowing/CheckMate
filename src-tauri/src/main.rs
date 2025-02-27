@@ -5,7 +5,7 @@ use std::fs;
 use std::fs::read_dir;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::command;
+use tauri::{command, Manager};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Config {
@@ -97,12 +97,6 @@ fn save_test_result(
     fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
 
     let file_path = dir_path.join(&file_name);
-
-    // ファイルが既に存在する場合はエラーを返す
-    if file_path.exists() {
-        return Err("指定されたファイル名は既に存在します。別の名前を指定してください。".to_string());
-    }
-
     let json = serde_json::to_string_pretty(&test_result)
         .map_err(|e| format!("Failed to serialize test result: {}", e))?;
     fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
@@ -257,6 +251,14 @@ fn get_user_name() -> Result<String, String> {
 }
 
 #[command]
+fn check_test_result_exists(test_suite_id: String, file_name: String) -> Result<bool, String> {
+    let file_path = PathBuf::from("test_results")
+        .join(&test_suite_id)
+        .join(&file_name);
+    Ok(file_path.exists())
+}
+
+#[command]
 fn delete_test_result(test_suite_id: String, file_name: String) -> Result<(), String> {
     let file_path = PathBuf::from("test_results")
         .join(&test_suite_id)
@@ -359,7 +361,8 @@ fn main() {
             get_user_name,
             update_user_name,
             get_test_results,
-            delete_test_result
+            delete_test_result,
+            check_test_result_exists
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
