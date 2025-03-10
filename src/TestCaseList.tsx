@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
-import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from "@tauri-apps/plugin-notification";
 import { TestCase, TestSuite } from "./types/TestCase";
 import PreconditionEdit from "./components/PreconditionEdit";
 import PreconditionView from "./components/PreconditionView";
@@ -17,7 +21,9 @@ const TestCaseList: React.FC = () => {
   const [currentMode, setCurrentMode] = useState<Mode>("edit");
   const [hasEditChanges, setHasEditChanges] = useState<boolean>(false);
   const [hasResultChanges, setHasResultChanges] = useState<boolean>(false);
-  const [autoSaveStartTime, setAutoSaveStartTime] = useState<number | null>(null);
+  const [autoSaveStartTime, setAutoSaveStartTime] = useState<number | null>(
+    null
+  );
   const [suiteName, setSuiteName] = useState<string>("");
   const [precondition, setPrecondition] = useState<string>("");
   const [isPreconditionEditOpen, setIsPreconditionEditOpen] = useState(false);
@@ -27,10 +33,12 @@ const TestCaseList: React.FC = () => {
     const newTestCase: TestCase = {
       id: `tc-${testCases.length + 1}`,
       name: "新しいテストケース",
-      steps: [{
-        step: "手順を入力",
-        expected: "期待値を入力"
-      }]
+      steps: [
+        {
+          step: "手順を入力",
+          expected: "期待値を入力",
+        },
+      ],
     };
     setTestCases([...testCases, newTestCase]);
     setHasEditChanges(true);
@@ -46,12 +54,15 @@ const TestCaseList: React.FC = () => {
   };
 
   // テスト結果を更新
-  const handleTestResultChange = (caseIndex: number, stepIndex: number, result: "OK" | "NG" | "N/A") => {
+  const handleTestResultChange = (
+    caseIndex: number,
+    stepIndex: number,
+    result: "OK" | "NG" | "N/A"
+  ) => {
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps[stepIndex].result = result;
     setTestCases(updatedCases);
-    if(!hasResultChanges)
-    {
+    if (!hasResultChanges) {
       setAutoSaveStartTime(Date.now());
     }
     setHasResultChanges(true);
@@ -62,48 +73,50 @@ const TestCaseList: React.FC = () => {
     if (!hasEditChanges && !hasResultChanges) return;
 
     try {
-      const escapedPrecondition = precondition.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+      const escapedPrecondition = precondition
+        .replace(/\n/g, "\\n")
+        .replace(/\t/g, "\\t");
       // テストケースをエスケープ処理
-      const escapedTestCases = testCases.map(testCase => ({
+      const escapedTestCases = testCases.map((testCase) => ({
         ...testCase,
-        name: testCase.name.replace(/\n/g, '\\n').replace(/\t/g, '\\t'),
-        steps: testCase.steps.map(step => ({
+        name: testCase.name.replace(/\n/g, "\\n").replace(/\t/g, "\\t"),
+        steps: testCase.steps.map((step) => ({
           ...step,
-          step: step.step.replace(/\n/g, '\\n').replace(/\t/g, '\\t'),
-          expected: step.expected.replace(/\n/g, '\\n').replace(/\t/g, '\\t')
-        }))
+          step: step.step.replace(/\n/g, "\\n").replace(/\t/g, "\\t"),
+          expected: step.expected.replace(/\n/g, "\\n").replace(/\t/g, "\\t"),
+        })),
       }));
 
       // TestSuiteとして保存
-      await invoke('save_test_suite', {
+      await invoke("save_test_suite", {
         testSuite: {
           id: suiteId,
           name: suiteName,
           precondition: escapedPrecondition,
-          test_cases: escapedTestCases
-        }
+          test_cases: escapedTestCases,
+        },
       });
-      console.log('テストスイートを自動保存しました');
+      console.log("テストスイートを自動保存しました");
 
       // 通知を送信する
       let permissionGranted = await isPermissionGranted();
       if (!permissionGranted) {
         const permission = await requestPermission();
-        permissionGranted = permission === 'granted';
+        permissionGranted = permission === "granted";
       }
-      
+
       if (permissionGranted) {
         await sendNotification({
           title: "保存完了",
-          body: "テストスイートが正常に保存されました"
+          body: "テストスイートが正常に保存されました",
         });
       }
-      
+
       setHasEditChanges(false);
       setHasResultChanges(false);
       setAutoSaveStartTime(null);
     } catch (error) {
-      console.error('テストスイートの保存に失敗しました:', error);
+      console.error("テストスイートの保存に失敗しました:", error);
     }
   };
 
@@ -114,7 +127,7 @@ const TestCaseList: React.FC = () => {
       setHasEditChanges(true);
       setAutoSaveStartTime(Date.now());
     } catch (error) {
-      console.error('前提条件の保存に失敗しました:', error);
+      console.error("前提条件の保存に失敗しました:", error);
     }
   };
 
@@ -122,21 +135,25 @@ const TestCaseList: React.FC = () => {
   useEffect(() => {
     if (suiteId) {
       // テストスイート全体の読み込み
-      invoke<TestSuite>('get_test_suite', { id: suiteId })
+      invoke<TestSuite>("get_test_suite", { id: suiteId })
         .then((data) => {
           // エスケープシーケンスを削除
-          const unescapedPrecondition = data.precondition.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
-          const unescapedTestCases = data.test_cases.map(testCase => ({
+          const unescapedPrecondition = data.precondition
+            .replace(/\\n/g, "\n")
+            .replace(/\\t/g, "\t");
+          const unescapedTestCases = data.test_cases.map((testCase) => ({
             ...testCase,
-            name: testCase.name.replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
-            steps: testCase.steps.map(step => ({
+            name: testCase.name.replace(/\\n/g, "\n").replace(/\\t/g, "\t"),
+            steps: testCase.steps.map((step) => ({
               ...step,
-              step: step.step.replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
-              expected: step.expected.replace(/\\n/g, '\n').replace(/\\t/g, '\t')
-            }))
+              step: step.step.replace(/\\n/g, "\n").replace(/\\t/g, "\t"),
+              expected: step.expected
+                .replace(/\\n/g, "\n")
+                .replace(/\\t/g, "\t"),
+            })),
           }));
           setTestCases(unescapedTestCases);
-          setPrecondition(unescapedPrecondition || '');
+          setPrecondition(unescapedPrecondition || "");
           setSuiteName(data.name);
         })
         .catch((error) => console.error("Error fetching test suite:", error));
@@ -149,13 +166,13 @@ const TestCaseList: React.FC = () => {
       // Ctrl + Shift + キーの組み合わせを検出
       if (event.ctrlKey && event.shiftKey) {
         switch (event.key.toLowerCase()) {
-          case 'e':
+          case "e":
             setCurrentMode("edit");
             break;
-          case 't':
+          case "t":
             setCurrentMode("test");
             break;
-          case 'w':
+          case "w":
             setCurrentMode("history");
             break;
         }
@@ -163,7 +180,7 @@ const TestCaseList: React.FC = () => {
       // Ctrl + Tab でモードを循環
       if (event.ctrlKey && event.key === "Tab") {
         event.preventDefault(); // ブラウザのデフォルトのタブ切り替えを防止
-        setCurrentMode(prevMode => {
+        setCurrentMode((prevMode) => {
           switch (prevMode) {
             case "edit":
               return "test";
@@ -178,14 +195,13 @@ const TestCaseList: React.FC = () => {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   // 変更監視と自動保存
   useEffect(() => {
     if (!hasEditChanges && !hasResultChanges) return;
-
   }, [hasEditChanges, hasResultChanges, precondition]);
 
   //保存タイマー処理
@@ -199,13 +215,15 @@ const TestCaseList: React.FC = () => {
     return () => {
       clearTimeout(timer);
       setAutoSaveStartTime(null);
-    }
+    };
   }, [autoSaveStartTime]);
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">テストケース一覧（{suiteName}）</h2>
-      
+      <h2 className="text-xl font-bold mb-4">
+        テストケース一覧（{suiteName}）
+      </h2>
+
       <PreconditionView
         precondition={precondition}
         onEdit={() => setIsPreconditionEditOpen(true)}
@@ -219,8 +237,8 @@ const TestCaseList: React.FC = () => {
       />
       <div className="mb-4">
         <div className="flex justify-between items-center">
-          <button 
-            onClick={() => navigate("/")} 
+          <button
+            onClick={() => navigate("/")}
             className="px-4 py-2 bg-gray-300 rounded"
           >
             戻る
@@ -275,10 +293,7 @@ const TestCaseList: React.FC = () => {
           onTestResultChange={handleTestResultChange}
         />
       ) : (
-        <TestCaseHistory
-          testCases={testCases}
-          testSuiteId={suiteId || ""}
-        />
+        <TestCaseHistory testCases={testCases} testSuiteId={suiteId || ""} />
       )}
     </div>
   );

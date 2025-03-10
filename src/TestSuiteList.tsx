@@ -56,7 +56,7 @@ export default function TestSuiteList() {
 
   const addTestSuite = async () => {
     if (!newSuiteName.trim()) return;
-    
+
     try {
       const newSuite = await invoke<TestSuite>("create_test_suite", {
         name: newSuiteName,
@@ -87,11 +87,13 @@ export default function TestSuiteList() {
         newName: renameSuiteName,
       });
 
-      setTestSuites(testSuites.map(suite =>
-        suite.id === selectedSuite.id
-          ? { ...suite, name: renameSuiteName }
-          : suite
-      ));
+      setTestSuites(
+        testSuites.map((suite) =>
+          suite.id === selectedSuite.id
+            ? { ...suite, name: renameSuiteName }
+            : suite
+        )
+      );
       setIsRenameDialogOpen(false);
       setSelectedSuite(null);
     } catch (error) {
@@ -151,9 +153,15 @@ export default function TestSuiteList() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">テスト管理番号</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">テストスイート名</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                テスト管理番号
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                テストスイート名
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                操作
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -165,7 +173,9 @@ export default function TestSuiteList() {
                   className="hover:bg-gray-50 transition-colors duration-150 ease-in-out cursor-pointer"
                   onDoubleClick={() => navigate(`/test-cases/${suite.id}`)}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{suite.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                    {suite.id}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{suite.name}</td>
                   <td className="px-6 py-4 text-center whitespace-nowrap">
                     <button
@@ -194,8 +204,8 @@ export default function TestSuiteList() {
       </div>
 
       {/* 追加ボタン */}
-      <button 
-        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 mt-4 max-w-2xl mx-auto rounded-lg shadow-sm transition-colors duration-150 flex items-center justify-center" 
+      <button
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 mt-4 max-w-2xl mx-auto rounded-lg shadow-sm transition-colors duration-150 flex items-center justify-center"
         onClick={() => setIsAddDialogOpen(true)}
       >
         <span>テストスイートを追加</span>

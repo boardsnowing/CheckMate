@@ -21,23 +21,23 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   // キーボードショートカットのイベントハンドラ
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.key === 's') {
+      if (event.ctrlKey && event.key === "s") {
         event.preventDefault(); // ブラウザのデフォルトの保存動作を防ぐ
         onSave(); // 強制的に保存を実行
       }
       // Alt + P でプレビューモードを切り替え
-      if (event.altKey && event.key === 'p') {
+      if (event.altKey && event.key === "p") {
         event.preventDefault();
-        setIsPreviewMode(prev => !prev);
+        setIsPreviewMode((prev) => !prev);
       }
     };
 
     // イベントリスナーを追加
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     // クリーンアップ関数
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onSave]);
 
@@ -52,7 +52,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps.push({
       step: "新しい手順",
-      expected: "期待値"
+      expected: "期待値",
     });
     onTestCaseChange(updatedCases);
   };
@@ -62,7 +62,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps.splice(stepIndex + 1, 0, {
       step: "",
-      expected: ""
+      expected: "",
     });
     onTestCaseChange(updatedCases);
   };
@@ -97,15 +97,15 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
         >
           テストケース追加
         </button>
-        <div className="text-sm text-gray-500">
-          Alt + P でプレビュー切替
-        </div>
+        <div className="text-sm text-gray-500">Alt + P でプレビュー切替</div>
       </div>
 
       <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-200">
-            <th className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">No</th>
+            <th className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
+              No
+            </th>
             <th className="border border-gray-300 px-2 py-1">手順</th>
             <th className="border border-gray-300 px-2 py-1">期待値</th>
           </tr>
@@ -138,10 +138,13 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 <td className="border border-gray-300 px-2 py-1" colSpan={2}>
                   {isPreviewMode ? (
                     <div className="markdown p-1">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{testCase.name}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {testCase.name}
+                      </ReactMarkdown>
                     </div>
                   ) : (
-                    <textarea placeholder="テストケースの概要を入力"
+                    <textarea
+                      placeholder="テストケースの概要を入力"
                       value={testCase.name}
                       onChange={(e) => {
                         const updatedCases = [...testCases];
@@ -161,7 +164,9 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 >
                   <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm">{`${caseIndex + 1}-${stepIndex + 1}`}</span>
+                      <span className="text-sm">{`${caseIndex + 1}-${
+                        stepIndex + 1
+                      }`}</span>
                       <button
                         onClick={() => handleInsertStep(caseIndex, stepIndex)}
                         className="px-1 py-0.5 bg-blue-500 text-white rounded text-xs"
@@ -180,14 +185,22 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                     <div className="relative">
                       {isPreviewMode ? (
                         <div className="markdown">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.step}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {step.step}
+                          </ReactMarkdown>
                         </div>
                       ) : (
                         <div>
-                          <textarea placeholder="手順"
+                          <textarea
+                            placeholder="手順"
                             value={step.step}
                             onChange={(e) =>
-                              handleUpdateStep(caseIndex, stepIndex, "step", e.target.value)
+                              handleUpdateStep(
+                                caseIndex,
+                                stepIndex,
+                                "step",
+                                e.target.value
+                              )
                             }
                             className="w-full p-1 border rounded h-[6em]"
                           />
@@ -199,11 +212,14 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                     <div className="relative">
                       {isPreviewMode ? (
                         <div className="markdown">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.expected}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {step.expected}
+                          </ReactMarkdown>
                         </div>
                       ) : (
                         <div>
-                          <textarea placeholder="期待値"
+                          <textarea
+                            placeholder="期待値"
                             value={step.expected}
                             onChange={(e) =>
                               handleUpdateStep(
@@ -227,7 +243,10 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
           {testCases.map((_, index) =>
             index < testCases.length - 1 ? (
               <tr key={`separator-${index}`}>
-                <td colSpan={3} className="h-2 border-b-2 border-gray-400 bg-gray-50"></td>
+                <td
+                  colSpan={3}
+                  className="h-2 border-b-2 border-gray-400 bg-gray-50"
+                ></td>
               </tr>
             ) : null
           )}

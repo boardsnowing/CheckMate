@@ -12,14 +12,14 @@ export default function App() {
         <Routes>
           {/* テストスイート画面（初期ページ） */}
           <Route path="/" element={<TestSuiteList />} />
-          
+
           {/* テストケース画面 */}
           <Route path="/test-cases/:suiteId" element={<TestCaseList />} />
         </Routes>
       </div>
     </Router>
-  )
-  }
+  );
+}
 
 //   return (
 //     <main className="container">
@@ -56,4 +56,3 @@ export default function App() {
 //     </main>
 //   );
 // }
-

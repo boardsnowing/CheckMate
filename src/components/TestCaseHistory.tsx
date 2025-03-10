@@ -53,27 +53,34 @@ const TestCaseHistory: React.FC<TestCaseHistoryProps> = ({
     const timestamp = new Date(result.executed_at).toISOString();
     let totalTests = 0;
     let failures = 0;
-    let testCasesXml = '';
+    let testCasesXml = "";
 
-    result.test_results.forEach(testResult => {
-      const testCase = testCases.find(tc => tc.id === testResult.test_case_id);
+    result.test_results.forEach((testResult) => {
+      const testCase = testCases.find(
+        (tc) => tc.id === testResult.test_case_id
+      );
       const testName = testCase?.name || "Unknown Test Case";
-      
+
       // 各ステップの結果を集計
-      const hasFailure = testResult.results.some(r => r.status === "NG");
+      const hasFailure = testResult.results.some((r) => r.status === "NG");
       if (hasFailure) failures++;
       totalTests++;
 
       // テストケースの詳細をXMLに変換
       const failureDetails = testResult.results
-        .filter(r => r.status === "NG")
-        .map(r => `Step: ${r.step}\nExpected: ${r.expected}\nComment: ${r.comment}`)
+        .filter((r) => r.status === "NG")
+        .map(
+          (r) =>
+            `Step: ${r.step}\nExpected: ${r.expected}\nComment: ${r.comment}`
+        )
         .join("\n");
 
-      testCasesXml += `    <testcase name="${testName}" classname="${result.test_suite_id}"${
-        hasFailure 
+      testCasesXml += `    <testcase name="${testName}" classname="${
+        result.test_suite_id
+      }"${
+        hasFailure
           ? `>\n      <failure message="Test failed" type="AssertionError">${failureDetails}</failure>\n    </testcase>`
-          : ' />'
+          : " />"
       }\n`;
     });
 
@@ -89,11 +96,13 @@ ${testCasesXml}  </testsuite>
 
     try {
       const filePath = await save({
-        filters: [{
-          name: 'XML',
-          extensions: ['xml']
-        }],
-        defaultPath: `${selectedResult.test_run_name}.xml`
+        filters: [
+          {
+            name: "XML",
+            extensions: ["xml"],
+          },
+        ],
+        defaultPath: `${selectedResult.test_run_name}.xml`,
       });
 
       if (filePath) {
@@ -136,12 +145,12 @@ ${testCasesXml}  </testsuite>
       OK: 0,
       NG: 0,
       NA: 0,
-      Unmarked: 0
+      Unmarked: 0,
     };
 
     // 実行済みの結果を集計
-    result.test_results.forEach(testResult => {
-      testResult.results.forEach(result => {
+    result.test_results.forEach((testResult) => {
+      testResult.results.forEach((result) => {
         if (result.status === "OK") counts.OK++;
         else if (result.status === "NG") counts.NG++;
         else if (result.status === "N/A") counts.NA++;
@@ -171,7 +180,8 @@ ${testCasesXml}  </testsuite>
               <option value="">テスト結果を選択してください</option>
               {testResults.map((result) => (
                 <option key={result.test_run_name} value={result.test_run_name}>
-                  {result.test_run_name} - {result.executed_by} ({formatDate(result.executed_at)})
+                  {result.test_run_name} - {result.executed_by} (
+                  {formatDate(result.executed_at)})
                 </option>
               ))}
             </select>
@@ -184,7 +194,9 @@ ${testCasesXml}  </testsuite>
                   JUnitエクスポート
                 </button>
                 <button
-                  onClick={() => handleDeleteResult(selectedResult.test_run_name)}
+                  onClick={() =>
+                    handleDeleteResult(selectedResult.test_run_name)
+                  }
                   className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   削除
@@ -224,11 +236,15 @@ ${testCasesXml}  </testsuite>
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border border-gray-300 px-4 py-2">テストケース</th>
+                    <th className="border border-gray-300 px-4 py-2">
+                      テストケース
+                    </th>
                     <th className="border border-gray-300 px-4 py-2">手順</th>
                     <th className="border border-gray-300 px-4 py-2">期待値</th>
                     <th className="border border-gray-300 px-4 py-2">結果</th>
-                    <th className="border border-gray-300 px-4 py-2">コメント</th>
+                    <th className="border border-gray-300 px-4 py-2">
+                      コメント
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -244,18 +260,24 @@ ${testCasesXml}  </testsuite>
                             rowSpan={testResult.results.length}
                           >
                             <div>
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{testCase?.name || "不明なテストケース"}</ReactMarkdown>                              
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {testCase?.name || "不明なテストケース"}
+                              </ReactMarkdown>
                             </div>
                           </td>
                         )}
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="prose">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.step}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {result.step}
+                            </ReactMarkdown>
                           </div>
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="prose">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.expected}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {result.expected}
+                            </ReactMarkdown>
                           </div>
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
@@ -273,7 +295,9 @@ ${testCasesXml}  </testsuite>
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="prose">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.comment}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {result.comment}
+                            </ReactMarkdown>
                           </div>
                         </td>
                       </tr>
