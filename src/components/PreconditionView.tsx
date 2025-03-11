@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 interface PreconditionViewProps {
   precondition?: string;
@@ -50,7 +51,19 @@ const PreconditionView: React.FC<PreconditionViewProps> = ({
       </div>
       {isExpanded && (
         <div className="markdown">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              img: ({ node, ...props }) => {
+                const convertedSrc = convertFileSrc(props.src || "");
+                console.log("Original src:", props.src);
+                console.log("Converted src:", convertedSrc);
+                return (
+                  <img {...props} src={convertedSrc} alt={props.alt || ""} />
+                );
+              },
+            }}
+          >
             {precondition}
           </ReactMarkdown>
         </div>
