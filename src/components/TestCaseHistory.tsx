@@ -5,6 +5,15 @@ import remarkGfm from "remark-gfm";
 import { TestCase } from "../types/TestCase";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  pdf,
+  Font,
+} from "@react-pdf/renderer";
 
 interface TestCaseHistoryProps {
   testCases: TestCase[];
@@ -26,6 +35,19 @@ interface TestResult {
     }>;
   }>;
 }
+
+Font.register({
+  family: "SourceHanSansHW",
+  fonts: [
+    {
+      src: "../fonts/SourceHanSansHW-Regular.otf",
+    },
+    {
+      src: "../fonts/SourceHanSansHW-Bold.otf",
+      fontWeight: "bold",
+    },
+  ],
+});
 
 const TestCaseHistory: React.FC<TestCaseHistoryProps> = ({
   testCases,
@@ -89,6 +111,155 @@ const TestCaseHistory: React.FC<TestCaseHistoryProps> = ({
   <testsuite name="${result.test_suite_id}" timestamp="${timestamp}" tests="${totalTests}" failures="${failures}">
 ${testCasesXml}  </testsuite>
 </testsuites>`;
+  };
+
+  // PDFスタイルの定義
+  const styles = StyleSheet.create({
+    page: {
+      flexDirection: "column",
+      backgroundColor: "#ffffff",
+      padding: 30,
+      fontFamily: "SourceHanSansHW",
+    },
+    header: {
+      fontSize: 18,
+      marginBottom: 20,
+    },
+    summary: {
+      flexDirection: "row",
+      marginBottom: 20,
+    },
+    summaryItem: {
+      padding: 5,
+      borderRadius: 4,
+      marginRight: 10,
+    },
+    table: {
+      width: "100%",
+      borderStyle: "solid",
+      borderWidth: 1,
+      borderColor: "#000",
+      marginBottom: 10,
+    },
+    tableRow: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: "#000",
+    },
+    tableHeader: {
+      backgroundColor: "#f0f0f0",
+    },
+    tableCell: {
+      padding: 5,
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+      fontSize: 10,
+    },
+    testCase: { width: "25%" },
+    step: { width: "20%" },
+    expected: { width: "25%" },
+    result: { width: "10%" },
+    comment: { width: "20%" },
+  });
+
+  // PDFドキュメントの定義
+  const TestResultPDF = ({ result }: { result: TestResult }) => {
+    const counts = calculateStatusCounts(result);
+
+    return (
+      <Document>
+        <Page size="A4" style={styles.page}>
+          <Text style={styles.header}>テスト結果: {result.test_run_name}</Text>
+
+          <View style={styles.summary}>
+            <View style={[styles.summaryItem, { backgroundColor: "#e8f5e9" }]}>
+              <Text>OK: {counts.OK}</Text>
+            </View>
+            <View style={[styles.summaryItem, { backgroundColor: "#ffebee" }]}>
+              <Text>NG: {counts.NG}</Text>
+            </View>
+            <View style={[styles.summaryItem, { backgroundColor: "#fff3e0" }]}>
+              <Text>N/A: {counts.NA}</Text>
+            </View>
+            <View style={[styles.summaryItem, { backgroundColor: "#f5f5f5" }]}>
+              <Text>未実施: {counts.Unmarked}</Text>
+            </View>
+          </View>
+
+          <View style={styles.table}>
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              <Text style={[styles.tableCell, styles.testCase]}>
+                テストケース
+              </Text>
+              <Text style={[styles.tableCell, styles.step]}>手順</Text>
+              <Text style={[styles.tableCell, styles.expected]}>期待値</Text>
+              <Text style={[styles.tableCell, styles.result]}>結果</Text>
+              <Text style={[styles.tableCell, styles.comment]}>コメント</Text>
+            </View>
+            {result.test_results.map((testResult) => {
+              const testCase = testCases.find(
+                (tc) => tc.id === testResult.test_case_id
+              );
+              return testResult.results.map((result, stepIndex) => (
+                <View
+                  key={`${testResult.test_case_id}-${stepIndex}`}
+                  style={styles.tableRow}
+                >
+                  {stepIndex === 0 && (
+                    <Text style={[styles.tableCell, styles.testCase]}>
+                      {testCase?.name || "不明なテストケース"}
+                    </Text>
+                  )}
+                  {stepIndex !== 0 && (
+                    <Text style={[styles.tableCell, styles.testCase]}></Text>
+                  )}
+                  <Text style={[styles.tableCell, styles.step]}>
+                    {result.step}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.expected]}>
+                    {result.expected}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.result]}>
+                    {result.status}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.comment]}>
+                    {result.comment}
+                  </Text>
+                </View>
+              ));
+            })}
+          </View>
+        </Page>
+      </Document>
+    );
+  };
+
+  const handleExportPDF = async () => {
+    if (!selectedResult) return;
+
+    try {
+      const filePath = await save({
+        filters: [
+          {
+            name: "PDF",
+            extensions: ["pdf"],
+          },
+        ],
+        defaultPath: `${selectedResult.test_run_name}.pdf`,
+      });
+
+      if (filePath) {
+        const blob = await pdf(
+          <TestResultPDF result={selectedResult} />
+        ).toBlob();
+        const arrayBuffer = await blob.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        await writeFile(filePath, uint8Array);
+      }
+    } catch (error) {
+      console.error("PDFエクスポートに失敗しました:", error);
+      alert("PDFエクスポートに失敗しました");
+    }
   };
 
   const handleExportJUnit = async () => {
@@ -187,6 +358,12 @@ ${testCasesXml}  </testsuite>
             </select>
             {selectedResult && (
               <div className="flex space-x-2">
+                <button
+                  onClick={handleExportPDF}
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  PDFエクスポート
+                </button>
                 <button
                   onClick={handleExportJUnit}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"

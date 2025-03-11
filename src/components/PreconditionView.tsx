@@ -56,8 +56,6 @@ const PreconditionView: React.FC<PreconditionViewProps> = ({
             components={{
               img: ({ node, ...props }) => {
                 const convertedSrc = convertFileSrc(props.src || "");
-                console.log("Original src:", props.src);
-                console.log("Converted src:", convertedSrc);
                 return (
                   <img {...props} src={convertedSrc} alt={props.alt || ""} />
                 );
