@@ -33,6 +33,27 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
   testSuiteName,
   onTestResultChange,
 }) => {
+  // テスト結果の集計を計算する関数
+  const calculateCurrentStatusCounts = () => {
+    const counts = {
+      OK: 0,
+      NG: 0,
+      NA: 0,
+      Unmarked: 0,
+    };
+
+    testCases.forEach((testCase) => {
+      testCase.steps.forEach((step) => {
+        if (step.result === "OK") counts.OK++;
+        else if (step.result === "NG") counts.NG++;
+        else if (step.result === "N/A") counts.NA++;
+        else counts.Unmarked++;
+      });
+    });
+
+    return counts;
+  };
+
   const [comments, setComments] = useState<{ [key: string]: string }>({});
   const [fileName, setFileName] = useState<string>("");
   const [previousResults, setPreviousResults] = useState<any[]>([]);
@@ -115,6 +136,29 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
 
   return (
     <div>
+      {/* テスト結果の集計表示 */}
+      <div className="bg-white p-4 rounded shadow mb-4">
+        {(() => {
+          const counts = calculateCurrentStatusCounts();
+          return (
+            <div className="flex space-x-4">
+              <div className="px-3 py-1 bg-green-100 text-green-800 rounded">
+                OK: {counts.OK}
+              </div>
+              <div className="px-3 py-1 bg-red-100 text-red-800 rounded">
+                NG: {counts.NG}
+              </div>
+              <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded">
+                N/A: {counts.NA}
+              </div>
+              <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded">
+                未実施: {counts.Unmarked}
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
       <div className="mt-4 space-y-4 mb-4">
         <div className="flex items-center space-x-4">
           <label className="text-sm font-medium text-gray-700">
