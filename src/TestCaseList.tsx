@@ -181,15 +181,30 @@ const TestCaseList: React.FC = () => {
       if (event.ctrlKey && event.key === "Tab") {
         event.preventDefault(); // ブラウザのデフォルトのタブ切り替えを防止
         setCurrentMode((prevMode) => {
-          switch (prevMode) {
-            case "edit":
-              return "test";
-            case "test":
-              return "history";
-            case "history":
-              return "edit";
-            default:
-              return "edit";
+          if (event.shiftKey) {
+            // Ctrl + Shift + Tab で逆循環
+            switch (prevMode) {
+              case "edit":
+                return "history";
+              case "test":
+                return "edit";
+              case "history":
+                return "test";
+              default:
+                return "edit";
+            }
+          } else {
+            // Ctrl + Tab で順循環
+            switch (prevMode) {
+              case "edit":
+                return "test";
+              case "test":
+                return "history";
+              case "history":
+                return "edit";
+              default:
+                return "edit";
+            }
           }
         });
       }
