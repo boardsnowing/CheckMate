@@ -430,7 +430,16 @@ ${testCasesXml}  </testsuite>
                       (tc) => tc.id === testResult.test_case_id
                     );
                     return testResult.results.map((result, stepIndex) => (
-                      <tr key={`${testResult.test_case_id}-${stepIndex}`}>
+                      <tr
+                        key={`${testResult.test_case_id}-${stepIndex}`}
+                        className={`${
+                          selectedResult.test_results.indexOf(testResult) %
+                            2 ===
+                          0
+                            ? "bg-blue-50"
+                            : "bg-green-50"
+                        }`}
+                      >
                         {stepIndex === 0 && (
                           <td
                             className="border border-gray-300 px-4 py-2"

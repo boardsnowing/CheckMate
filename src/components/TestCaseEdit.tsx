@@ -116,7 +116,9 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
               {/* テストケース名の行 */}
               <tr
                 key={`${caseIndex}-name`}
-                className="border border-gray-300 bg-gray-100 font-semibold"
+                className={`border border-gray-300 ${
+                  caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
+                } font-semibold`}
               >
                 <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
                   <div className="flex flex-col space-y-1">
@@ -160,7 +162,9 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
               {testCase.steps.map((step, stepIndex) => (
                 <tr
                   key={`${caseIndex}-step-${stepIndex}`}
-                  className="border border-gray-300"
+                  className={`border border-gray-300 ${
+                    caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
+                  }`}
                 >
                   <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
                     <div className="flex flex-col space-y-1">

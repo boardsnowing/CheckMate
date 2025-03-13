@@ -226,7 +226,9 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
               {/* テストケース名の行 */}
               <tr
                 key={`${caseIndex}-name`}
-                className="border border-gray-300 bg-gray-100 font-semibold"
+                className={`border border-gray-300 ${
+                  caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
+                } font-semibold`}
               >
                 <td className="border border-gray-300 px-2 py-1">
                   <span className="mr-2">{caseIndex + 1}.</span>
@@ -243,7 +245,9 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
               {testCase.steps.map((step, stepIndex) => (
                 <tr
                   key={`${caseIndex}-step-${stepIndex}`}
-                  className="border border-gray-300"
+                  className={`border border-gray-300 ${
+                    caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
+                  }`}
                 >
                   <td className="border border-gray-300 px-2 py-1">
                     <span>{`${caseIndex + 1}-${stepIndex + 1}`}</span>
