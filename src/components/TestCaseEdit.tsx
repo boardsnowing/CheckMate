@@ -28,9 +28,9 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   };
 
   const toggleCollapse = (caseIndex: number) => {
-    setCollapsedCases(prev => 
-      prev.includes(caseIndex) 
-        ? prev.filter(i => i !== caseIndex)
+    setCollapsedCases((prev) =>
+      prev.includes(caseIndex)
+        ? prev.filter((i) => i !== caseIndex)
         : [...prev, caseIndex]
     );
   };
@@ -64,12 +64,18 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
     onTestCaseChange(updatedCases);
   };
 
-  // テストケースにステップを追加（末尾に追加）
-  const addStep = (caseIndex: number) => {
+  // 指定位置にテストケースを挿入
+  const insertTestCase = (caseIndex: number) => {
     const updatedCases = [...testCases];
-    updatedCases[caseIndex].steps.push({
-      step: "新しい手順",
-      expected: "期待値",
+    updatedCases.splice(caseIndex + 1, 0, {
+      id: `tc-${testCases.length + 1}`,
+      name: "新しいテストケース",
+      steps: [
+        {
+          step: "手順を入力",
+          expected: "期待値を入力",
+        },
+      ],
     });
     onTestCaseChange(updatedCases);
   };
@@ -117,13 +123,16 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
           </button>
           <div className="flex items-center gap-4">
             <div className="text-sm">
-              テストケース数: <span className="font-bold">{testCases.length}</span>
+              テストケース数:{" "}
+              <span className="font-bold">{testCases.length}</span>
             </div>
             <button
               onClick={toggleAllCollapse}
               className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
             >
-              {collapsedCases.length === testCases.length ? "すべて展開" : "すべて折りたたむ"}
+              {collapsedCases.length === testCases.length
+                ? "すべて展開"
+                : "すべて折りたたむ"}
             </button>
           </div>
         </div>
@@ -160,16 +169,16 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                   <div className="flex flex-col space-y-1">
                     <span>{caseIndex + 1}.</span>
                     <button
-                      onClick={() => addStep(caseIndex)}
-                      className="px-1 py-0.5 bg-blue-500 text-white rounded text-xs"
+                      onClick={() => insertTestCase(caseIndex)}
+                      className="px-1 py-0.5 bg-green-500 text-white rounded text-xs"
                     >
-                      ステップ追加
+                      ケース挿入
                     </button>
                     <button
                       onClick={() => deleteTestCase(caseIndex)}
                       className="px-1 py-0.5 bg-red-500 text-white rounded text-xs"
                     >
-                      ステップ削除
+                      ケース削除
                     </button>
                   </div>
                 </td>
@@ -195,88 +204,89 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 </td>
               </tr>
               {/* テストケースのステップ */}
-              {!collapsedCases.includes(caseIndex) && testCase.steps.map((step, stepIndex) => (
-                <tr
-                  key={`${caseIndex}-step-${stepIndex}`}
-                  className={`border border-gray-300 ${
-                    caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
-                  }`}
-                >
-                  <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
-                    <div className="flex flex-col space-y-1">
-                      <span className="text-sm">{`${caseIndex + 1}-${
-                        stepIndex + 1
-                      }`}</span>
-                      <button
-                        onClick={() => handleInsertStep(caseIndex, stepIndex)}
-                        className="px-1 py-0.5 bg-blue-500 text-white rounded text-xs"
-                      >
-                        挿入
-                      </button>
-                      <button
-                        onClick={() => deleteStep(caseIndex, stepIndex)}
-                        className="px-1 py-0.5 bg-red-500 text-white rounded text-xs"
-                      >
-                        削除
-                      </button>
-                    </div>
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    <div className="relative">
-                      {isPreviewMode ? (
-                        <div className="markdown">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {step.step}
-                          </ReactMarkdown>
-                        </div>
-                      ) : (
-                        <div>
-                          <textarea
-                            placeholder="手順"
-                            value={step.step}
-                            onChange={(e) =>
-                              handleUpdateStep(
-                                caseIndex,
-                                stepIndex,
-                                "step",
-                                e.target.value
-                              )
-                            }
-                            className="w-full p-1 border rounded h-[6em]"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    <div className="relative">
-                      {isPreviewMode ? (
-                        <div className="markdown">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {step.expected}
-                          </ReactMarkdown>
-                        </div>
-                      ) : (
-                        <div>
-                          <textarea
-                            placeholder="期待値"
-                            value={step.expected}
-                            onChange={(e) =>
-                              handleUpdateStep(
-                                caseIndex,
-                                stepIndex,
-                                "expected",
-                                e.target.value
-                              )
-                            }
-                            className="w-full p-1 border rounded h-[6em]"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {!collapsedCases.includes(caseIndex) &&
+                testCase.steps.map((step, stepIndex) => (
+                  <tr
+                    key={`${caseIndex}-step-${stepIndex}`}
+                    className={`border border-gray-300 ${
+                      caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
+                    }`}
+                  >
+                    <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
+                      <div className="flex flex-col space-y-1">
+                        <span className="text-sm">{`${caseIndex + 1}-${
+                          stepIndex + 1
+                        }`}</span>
+                        <button
+                          onClick={() => handleInsertStep(caseIndex, stepIndex)}
+                          className="px-1 py-0.5 bg-blue-500 text-white rounded text-xs"
+                        >
+                          挿入
+                        </button>
+                        <button
+                          onClick={() => deleteStep(caseIndex, stepIndex)}
+                          className="px-1 py-0.5 bg-red-500 text-white rounded text-xs"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      <div className="relative">
+                        {isPreviewMode ? (
+                          <div className="markdown">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {step.step}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <div>
+                            <textarea
+                              placeholder="手順"
+                              value={step.step}
+                              onChange={(e) =>
+                                handleUpdateStep(
+                                  caseIndex,
+                                  stepIndex,
+                                  "step",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full p-1 border rounded h-[6em]"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      <div className="relative">
+                        {isPreviewMode ? (
+                          <div className="markdown">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {step.expected}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <div>
+                            <textarea
+                              placeholder="期待値"
+                              value={step.expected}
+                              onChange={(e) =>
+                                handleUpdateStep(
+                                  caseIndex,
+                                  stepIndex,
+                                  "expected",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full p-1 border rounded h-[6em]"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </>
           ))}
           {/* テストケース間の区切り線 */}
