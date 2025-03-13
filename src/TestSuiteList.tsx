@@ -16,12 +16,23 @@ export default function TestSuiteList() {
   const [userName, setUserName] = useState("");
   const [isUserNameDialogOpen, setIsUserNameDialogOpen] = useState(false);
   const [newUserName, setNewUserName] = useState("");
+  const [version, setVersion] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     loadTestSuites();
     loadUserName();
+    loadVersion();
   }, []);
+
+  const loadVersion = async () => {
+    try {
+      const ver = await invoke<string>("get_app_version");
+      setVersion(ver);
+    } catch (error) {
+      console.error("Failed to load version:", error);
+    }
+  };
 
   const loadUserName = async () => {
     try {
@@ -124,7 +135,10 @@ export default function TestSuiteList() {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">テストスイート管理</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-bold">テストスイート管理</h1>
+          <span className="text-sm text-gray-500">v{version}</span>
+        </div>
         <div className="flex items-center gap-2">
           <span>ユーザー名: {userName}</span>
           <button

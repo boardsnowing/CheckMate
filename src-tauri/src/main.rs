@@ -5,7 +5,7 @@ use std::fs;
 use std::fs::read_dir;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::command;
+use tauri::{command, AppHandle};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Config {
@@ -204,18 +204,6 @@ fn rename_test_suite(id: String, new_name: String) -> Result<(), String> {
         .map_err(|e| format!("Failed to serialize test suite data: {}", e))?;
     fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
 
-    // let old_results_dir = PathBuf::from("test_results").join(&id);
-    // let new_results_dir = PathBuf::from("test_results").join(&new_name);
-
-    // if old_results_dir.exists() {
-    //     fs::rename(&old_results_dir, &new_results_dir)
-    //         .map_err(|e| format!("Failed to rename results directory: {}", e))?;
-    // }
-
-    // let new_file_path = dir_path.join(format!("{}.json", new_name));
-    // fs::rename(&file_path, &new_file_path)
-    //     .map_err(|e| format!("Failed to rename test data file: {}", e))?;
-
     Ok(())
 }
 
@@ -313,8 +301,12 @@ fn create_test_suite(name: String, test_suite_id: String, precondition: Option<S
         .map_err(|e| format!("Failed to serialize test suite data: {}", e))?;
     fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
 
-
     Ok(data)
+}
+
+#[command]
+fn get_app_version(app_handle: AppHandle) -> Result<String, String> {
+    Ok(app_handle.package_info().version.to_string())
 }
 
 fn main() {
@@ -340,7 +332,8 @@ fn main() {
             update_user_name,
             get_test_results,
             delete_test_result,
-            check_test_result_exists
+            check_test_result_exists,
+            get_app_version
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
