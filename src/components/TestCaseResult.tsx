@@ -60,6 +60,7 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
   const [selectedResult, setSelectedResult] = useState<string>("");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
+  const [isDirty, setIsDirty] = useState(false);
 
   const toggleAllCollapse = () => {
     if (collapsedCases.length === testCases.length) {
@@ -77,13 +78,68 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
     );
   };
 
+  // 保存処理を共通関数として切り出し
+  const saveTestResult = async () => {
+    if (!fileName.trim()) {
+      alert("ファイル名を入力してください");
+      return false;
+    }
+
+    const testResults: TestCaseResultData[] = testCases.map((testCase) => ({
+      test_case_id: testCase.id,
+      results: testCase.steps.map((step, stepIndex) => ({
+        step: step.step,
+        expected: step.expected,
+        status: step.result || "未実施",
+        comment: comments[`${testCases.indexOf(testCase)}-${stepIndex}`] || "",
+      })),
+    }));
+
+    const fullFileName = `${fileName.trim()}.json`;
+    try {
+      // ファイルの存在確認
+      const exists = await invoke<boolean>("check_test_result_exists", {
+        testSuiteId,
+        fileName: fullFileName,
+      });
+
+      if (exists) {
+        // 上書き確認
+        if (!window.confirm("同名のファイルが既に存在します。上書きしますか？")) {
+          return false;
+        }
+      }
+
+      // テスト結果を保存
+      await invoke("save_test_result", {
+        testSuiteId,
+        testSuiteName,
+        executedBy: "tester1", // TODO: ログインユーザー名を使用
+        testResults,
+        fileName: fullFileName,
+      });
+      await loadPreviousResults(); // 保存後にリストを更新
+      setIsDirty(false);
+      return true;
+    } catch (error) {
+      console.error("Failed to save test result:", error);
+      alert("テスト結果の保存に失敗しました");
+      return false;
+    }
+  };
+
   // キーボードショートカットのイベントハンドラ
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
       // Alt + P でプレビューモードを切り替え
       if (event.altKey && event.key === "p") {
         event.preventDefault();
         setIsPreviewMode((prev) => !prev);
+      }
+      // Ctrl + S で保存
+      if (event.ctrlKey && event.key === "s") {
+        event.preventDefault();
+        await saveTestResult();
       }
     };
 
@@ -94,7 +150,23 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isPreviewMode]);
+  }, [isPreviewMode, fileName, comments, testCases, testSuiteId, testSuiteName]);
+
+  // テスト結果が変更されたときの処理
+  useEffect(() => {
+    setIsDirty(true);
+  }, [testCases, comments]);
+
+  // 自動保存の処理
+  useEffect(() => {
+    if (isDirty && fileName.trim()) {
+      const timer = setTimeout(async () => {
+        await saveTestResult();
+      }, 30000); // 30秒後に自動保存
+
+      return () => clearTimeout(timer);
+    }
+  }, [isDirty, fileName, comments, testCases]);
 
   useEffect(() => {
     loadPreviousResults();
@@ -207,60 +279,9 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             onClick={async () => {
-              const testResults: TestCaseResultData[] = testCases.map(
-                (testCase) => ({
-                  test_case_id: testCase.id,
-                  results: testCase.steps.map((step, stepIndex) => ({
-                    step: step.step,
-                    expected: step.expected,
-                    status: step.result || "未実施",
-                    comment:
-                      comments[`${testCases.indexOf(testCase)}-${stepIndex}`] ||
-                      "",
-                  })),
-                })
-              );
-
-              if (!fileName.trim()) {
-                alert("ファイル名を入力してください");
-                return;
-              }
-
-              const fullFileName = `${fileName.trim()}.json`;
-              try {
-                // ファイルの存在確認
-                const exists = await invoke<boolean>(
-                  "check_test_result_exists",
-                  {
-                    testSuiteId,
-                    fileName: fullFileName,
-                  }
-                );
-
-                if (exists) {
-                  // 上書き確認
-                  if (
-                    !window.confirm(
-                      "同名のファイルが既に存在します。上書きしますか？"
-                    )
-                  ) {
-                    return;
-                  }
-                }
-
-                // テスト結果を保存
-                await invoke("save_test_result", {
-                  testSuiteId,
-                  testSuiteName,
-                  executedBy: "tester1", // TODO: ログインユーザー名を使用
-                  testResults,
-                  fileName: fullFileName,
-                });
+              const success = await saveTestResult();
+              if (success) {
                 alert("テスト結果を保存しました");
-                await loadPreviousResults(); // 保存後にリストを更新
-              } catch (error) {
-                console.error("Failed to save test result:", error);
-                alert("テスト結果の保存に失敗しました");
               }
             }}
           >
