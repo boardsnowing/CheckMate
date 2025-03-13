@@ -46,7 +46,7 @@ const TestCaseList: React.FC = () => {
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps[stepIndex].result = result;
     setTestCases(updatedCases);
-    
+
     // テストモード以外の場合のみ保存フラグを更新
     if (currentMode !== "test") {
       if (!hasResultChanges) {
@@ -60,7 +60,7 @@ const TestCaseList: React.FC = () => {
   const saveTestCases = async () => {
     // テストモードの場合は保存をスキップ
     if (currentMode === "test") return;
-    
+
     if (!hasEditChanges && !hasResultChanges) return;
 
     try {

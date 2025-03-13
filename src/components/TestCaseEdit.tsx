@@ -1,7 +1,7 @@
 import { TestCase } from "../types/TestCase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 interface TestCaseEditProps {
   testCases: TestCase[];
@@ -123,7 +123,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   };
 
   // コンテキストメニューを閉じる
-  const handleClickOutside = (event: MouseEvent) => {
+  const handleClickOutside = () => {
     setContextMenu((prev) => ({ ...prev, visible: false }));
   };
 

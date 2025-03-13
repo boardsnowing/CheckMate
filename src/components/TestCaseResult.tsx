@@ -1,6 +1,6 @@
 import { TestCase } from "../types/TestCase";
 import { invoke } from "@tauri-apps/api/core";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
