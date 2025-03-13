@@ -28,22 +28,6 @@ const TestCaseList: React.FC = () => {
   const [precondition, setPrecondition] = useState<string>("");
   const [isPreconditionEditOpen, setIsPreconditionEditOpen] = useState(false);
 
-  // 新しいテストケースを追加
-  const addTestCase = () => {
-    const newTestCase: TestCase = {
-      id: `tc-${testCases.length + 1}`,
-      name: "新しいテストケース",
-      steps: [
-        {
-          step: "手順を入力",
-          expected: "期待値を入力",
-        },
-      ],
-    };
-    setTestCases([...testCases, newTestCase]);
-    setHasEditChanges(true);
-  };
-
   // テストケースの編集を処理
   const handleTestCaseChange = (updatedCases: TestCase[]) => {
     setTestCases(updatedCases);
@@ -300,7 +284,6 @@ const TestCaseList: React.FC = () => {
         <TestCaseEdit
           testCases={testCases}
           onTestCaseChange={handleTestCaseChange}
-          onAddTestCase={addTestCase}
           onSave={saveTestCases}
         />
       ) : currentMode === "test" ? (

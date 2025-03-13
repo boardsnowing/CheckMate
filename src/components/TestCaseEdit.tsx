@@ -6,14 +6,12 @@ import { useState, useEffect, useMemo } from "react";
 interface TestCaseEditProps {
   testCases: TestCase[];
   onTestCaseChange: (updatedCases: TestCase[]) => void;
-  onAddTestCase: () => void;
   onSave: () => void;
 }
 
 const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   testCases,
   onTestCaseChange,
-  onAddTestCase,
   onSave,
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -116,7 +114,19 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={onAddTestCase}
+            onClick={() => {
+              const newTestCase: TestCase = {
+                id: `tc-${testCases.length + 1}`,
+                name: "新しいテストケース",
+                steps: [
+                  {
+                    step: "",
+                    expected: "",
+                  },
+                ],
+              };
+              onTestCaseChange([...testCases, newTestCase]);
+            }}
             className="px-4 py-2 bg-green-500 text-white rounded"
           >
             テストケース追加
