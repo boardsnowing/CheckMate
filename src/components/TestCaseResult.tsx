@@ -1,6 +1,6 @@
 import { TestCase } from "../types/TestCase";
 import { invoke } from "@tauri-apps/api/core";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -38,6 +38,15 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
   const [previousResults, setPreviousResults] = useState<any[]>([]);
   const [selectedResult, setSelectedResult] = useState<string>("");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
+
+  const toggleCollapse = (caseIndex: number) => {
+    setCollapsedCases(prev => 
+      prev.includes(caseIndex) 
+        ? prev.filter(i => i !== caseIndex)
+        : [...prev, caseIndex]
+    );
+  };
 
   // キーボードショートカットのイベントハンドラ
   useEffect(() => {
@@ -231,7 +240,15 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                 } font-semibold`}
               >
                 <td className="border border-gray-300 px-2 py-1">
-                  <span className="mr-2">{caseIndex + 1}.</span>
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => toggleCollapse(caseIndex)}
+                      className="w-6 h-6 mr-2 bg-gray-200 rounded hover:bg-gray-300 flex items-center justify-center"
+                    >
+                      {collapsedCases.includes(caseIndex) ? "+" : "-"}
+                    </button>
+                    <span>{caseIndex + 1}.</span>
+                  </div>
                 </td>
                 <td colSpan={3} className="border border-gray-300 px-2 py-1">
                   <div className="prose flex items-center">
@@ -242,7 +259,7 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                 </td>
               </tr>
               {/* テストケースのステップ */}
-              {testCase.steps.map((step, stepIndex) => (
+              {!collapsedCases.includes(caseIndex) && testCase.steps.map((step, stepIndex) => (
                 <tr
                   key={`${caseIndex}-step-${stepIndex}`}
                   className={`border border-gray-300 ${

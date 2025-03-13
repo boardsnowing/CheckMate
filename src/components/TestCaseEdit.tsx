@@ -1,7 +1,7 @@
 import { TestCase } from "../types/TestCase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 interface TestCaseEditProps {
   testCases: TestCase[];
@@ -17,6 +17,15 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   onSave,
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
+
+  const toggleCollapse = (caseIndex: number) => {
+    setCollapsedCases(prev => 
+      prev.includes(caseIndex) 
+        ? prev.filter(i => i !== caseIndex)
+        : [...prev, caseIndex]
+    );
+  };
 
   // キーボードショートカットのイベントハンドラ
   useEffect(() => {
@@ -91,12 +100,17 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <button
-          onClick={onAddTestCase}
-          className="px-4 py-2 bg-green-500 text-white rounded"
-        >
-          テストケース追加
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onAddTestCase}
+            className="px-4 py-2 bg-green-500 text-white rounded"
+          >
+            テストケース追加
+          </button>
+          <div className="text-sm">
+            テストケース数: <span className="font-bold">{testCases.length}</span>
+          </div>
+        </div>
         <div className="text-sm text-gray-500">Alt + P でプレビュー切替</div>
       </div>
 
@@ -121,6 +135,12 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 } font-semibold`}
               >
                 <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
+                  <button
+                    onClick={() => toggleCollapse(caseIndex)}
+                    className="w-6 h-6 mb-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center justify-center"
+                  >
+                    {collapsedCases.includes(caseIndex) ? "+" : "-"}
+                  </button>
                   <div className="flex flex-col space-y-1">
                     <span>{caseIndex + 1}.</span>
                     <button
@@ -159,7 +179,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 </td>
               </tr>
               {/* テストケースのステップ */}
-              {testCase.steps.map((step, stepIndex) => (
+              {!collapsedCases.includes(caseIndex) && testCase.steps.map((step, stepIndex) => (
                 <tr
                   key={`${caseIndex}-step-${stepIndex}`}
                   className={`border border-gray-300 ${
