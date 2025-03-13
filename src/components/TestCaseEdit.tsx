@@ -1,7 +1,7 @@
 import { TestCase } from "../types/TestCase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface TestCaseEditProps {
   testCases: TestCase[];
@@ -16,6 +16,19 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    caseIndex: number;
+    stepIndex?: number;
+    visible: boolean;
+  }>({
+    x: 0,
+    y: 0,
+    caseIndex: -1,
+    stepIndex: undefined,
+    visible: false,
+  });
 
   const toggleAllCollapse = () => {
     if (collapsedCases.length === testCases.length) {
@@ -70,8 +83,8 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
       name: "新しいテストケース",
       steps: [
         {
-          step: "手順を入力",
-          expected: "期待値を入力",
+          step: "",
+          expected: "",
         },
       ],
     });
@@ -109,8 +122,95 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
     onTestCaseChange(updatedCases);
   };
 
+  // コンテキストメニューを閉じる
+  const handleClickOutside = (event: MouseEvent) => {
+    setContextMenu((prev) => ({ ...prev, visible: false }));
+  };
+
+  // コンテキストメニューのクリックイベントハンドラーを設定
+  useEffect(() => {
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  // 右クリックイベントハンドラー
+  const handleContextMenu = (
+    event: React.MouseEvent,
+    caseIndex: number,
+    stepIndex?: number
+  ) => {
+    event.preventDefault();
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      caseIndex,
+      stepIndex,
+      visible: true,
+    });
+  };
+
   return (
     <div>
+      {/* コンテキストメニュー */}
+      {contextMenu.visible && (
+        <div
+          className="fixed bg-white shadow-lg border rounded-lg py-2 z-50"
+          style={{
+            left: contextMenu.x,
+            top: contextMenu.y,
+          }}
+        >
+          {contextMenu.stepIndex === undefined ? (
+            <>
+              <button
+                onClick={() => {
+                  insertTestCase(contextMenu.caseIndex);
+                  setContextMenu((prev) => ({ ...prev, visible: false }));
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100"
+              >
+                テストケースを挿入
+              </button>
+              <button
+                onClick={() => {
+                  deleteTestCase(contextMenu.caseIndex);
+                  setContextMenu((prev) => ({ ...prev, visible: false }));
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+              >
+                テストケースを削除
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  handleInsertStep(
+                    contextMenu.caseIndex,
+                    contextMenu.stepIndex!
+                  );
+                  setContextMenu((prev) => ({ ...prev, visible: false }));
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100"
+              >
+                テストステップを挿入
+              </button>
+              <button
+                onClick={() => {
+                  deleteStep(contextMenu.caseIndex, contextMenu.stepIndex!);
+                  setContextMenu((prev) => ({ ...prev, visible: false }));
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+              >
+                テストステップを削除
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
           <button
@@ -168,28 +268,17 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 className={`border border-gray-300 ${
                   caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
                 } font-semibold`}
+                onContextMenu={(e) => handleContextMenu(e, caseIndex)}
               >
                 <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
-                  <button
-                    onClick={() => toggleCollapse(caseIndex)}
-                    className="w-6 h-6 mb-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center justify-center"
-                  >
-                    {collapsedCases.includes(caseIndex) ? "+" : "-"}
-                  </button>
-                  <div className="flex flex-col space-y-1">
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={() => toggleCollapse(caseIndex)}
+                      className="w-6 h-6 mb-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center justify-center"
+                    >
+                      {collapsedCases.includes(caseIndex) ? "+" : "-"}
+                    </button>
                     <span>{caseIndex + 1}.</span>
-                    <button
-                      onClick={() => insertTestCase(caseIndex)}
-                      className="px-1 py-0.5 bg-green-500 text-white rounded text-xs"
-                    >
-                      ケース挿入
-                    </button>
-                    <button
-                      onClick={() => deleteTestCase(caseIndex)}
-                      className="px-1 py-0.5 bg-red-500 text-white rounded text-xs"
-                    >
-                      ケース削除
-                    </button>
                   </div>
                 </td>
                 <td className="border border-gray-300 px-2 py-1" colSpan={2}>
@@ -221,24 +310,15 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                     className={`border border-gray-300 ${
                       caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
                     }`}
+                    onContextMenu={(e) =>
+                      handleContextMenu(e, caseIndex, stepIndex)
+                    }
                   >
                     <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
-                      <div className="flex flex-col space-y-1">
+                      <div className="flex justify-center">
                         <span className="text-sm">{`${caseIndex + 1}-${
                           stepIndex + 1
                         }`}</span>
-                        <button
-                          onClick={() => handleInsertStep(caseIndex, stepIndex)}
-                          className="px-1 py-0.5 bg-blue-500 text-white rounded text-xs"
-                        >
-                          挿入
-                        </button>
-                        <button
-                          onClick={() => deleteStep(caseIndex, stepIndex)}
-                          className="px-1 py-0.5 bg-red-500 text-white rounded text-xs"
-                        >
-                          削除
-                        </button>
                       </div>
                     </td>
                     <td className="border border-gray-300 px-2 py-1">
