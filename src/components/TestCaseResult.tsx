@@ -61,6 +61,9 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
   const [isDirty, setIsDirty] = useState(false);
+  const [autoSaveStartTime, setAutoSaveStartTime] = useState<number | null>(
+    null
+  );
 
   const toggleAllCollapse = () => {
     if (collapsedCases.length === testCases.length) {
@@ -71,9 +74,9 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
   };
 
   const toggleCollapse = (caseIndex: number) => {
-    setCollapsedCases(prev => 
-      prev.includes(caseIndex) 
-        ? prev.filter(i => i !== caseIndex)
+    setCollapsedCases((prev) =>
+      prev.includes(caseIndex)
+        ? prev.filter((i) => i !== caseIndex)
         : [...prev, caseIndex]
     );
   };
@@ -105,7 +108,9 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
 
       if (exists) {
         // 上書き確認
-        if (!window.confirm("同名のファイルが既に存在します。上書きしますか？")) {
+        if (
+          !window.confirm("同名のファイルが既に存在します。上書きしますか？")
+        ) {
           return false;
         }
       }
@@ -150,23 +155,39 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isPreviewMode, fileName, comments, testCases, testSuiteId, testSuiteName]);
+  }, [
+    isPreviewMode,
+    fileName,
+    comments,
+    testCases,
+    testSuiteId,
+    testSuiteName,
+  ]);
 
   // テスト結果が変更されたときの処理
   useEffect(() => {
+    if (!isDirty) {
+      setAutoSaveStartTime(Date.now());
+    }
     setIsDirty(true);
   }, [testCases, comments]);
 
   // 自動保存の処理
   useEffect(() => {
-    if (isDirty && fileName.trim()) {
-      const timer = setTimeout(async () => {
-        await saveTestResult();
-      }, 30000); // 30秒後に自動保存
+    if (!autoSaveStartTime || !fileName.trim()) return;
 
-      return () => clearTimeout(timer);
-    }
-  }, [isDirty, fileName, comments, testCases]);
+    const timer = setTimeout(async () => {
+      const success = await saveTestResult();
+      if (success) {
+        setIsDirty(false);
+        setAutoSaveStartTime(null);
+      }
+    }, 10000); // 10秒後に自動保存
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [autoSaveStartTime, fileName, comments, testCases]);
 
   useEffect(() => {
     loadPreviousResults();
@@ -295,7 +316,9 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
             onClick={toggleAllCollapse}
             className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
           >
-            {collapsedCases.length === testCases.length ? "すべて展開" : "すべて折りたたむ"}
+            {collapsedCases.length === testCases.length
+              ? "すべて展開"
+              : "すべて折りたたむ"}
           </button>
         </div>
         <div className="text-sm text-gray-500">Alt + P でプレビュー切替</div>
@@ -339,94 +362,99 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                 </td>
               </tr>
               {/* テストケースのステップ */}
-              {!collapsedCases.includes(caseIndex) && testCase.steps.map((step, stepIndex) => (
-                <tr
-                  key={`${caseIndex}-step-${stepIndex}`}
-                  className={`border border-gray-300 ${
-                    caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
-                  }`}
-                >
-                  <td className="border border-gray-300 px-2 py-1">
-                    <span>{`${caseIndex + 1}-${stepIndex + 1}`}</span>
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    <div className="prose">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {step.step}
-                      </ReactMarkdown>
-                    </div>
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    <div className="prose">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {step.expected}
-                      </ReactMarkdown>
-                    </div>
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex space-x-2">
-                        <button
-                          className={`px-2 py-1 ${
-                            step.result === "OK"
-                              ? "bg-green-500"
-                              : "bg-gray-400"
-                          } text-white rounded`}
-                          onClick={() =>
-                            onTestResultChange(caseIndex, stepIndex, "OK")
-                          }
-                        >
-                          OK
-                        </button>
-                        <button
-                          className={`px-2 py-1 ${
-                            step.result === "NG" ? "bg-red-500" : "bg-gray-400"
-                          } text-white rounded`}
-                          onClick={() =>
-                            onTestResultChange(caseIndex, stepIndex, "NG")
-                          }
-                        >
-                          NG
-                        </button>
-                        <button
-                          className={`px-2 py-1 ${
-                            step.result === "N/A"
-                              ? "bg-yellow-500"
-                              : "bg-gray-400"
-                          } text-white rounded`}
-                          onClick={() =>
-                            onTestResultChange(caseIndex, stepIndex, "N/A")
-                          }
-                        >
-                          N/A
-                        </button>
+              {!collapsedCases.includes(caseIndex) &&
+                testCase.steps.map((step, stepIndex) => (
+                  <tr
+                    key={`${caseIndex}-step-${stepIndex}`}
+                    className={`border border-gray-300 ${
+                      caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
+                    }`}
+                  >
+                    <td className="border border-gray-300 px-2 py-1">
+                      <span>{`${caseIndex + 1}-${stepIndex + 1}`}</span>
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      <div className="prose">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {step.step}
+                        </ReactMarkdown>
                       </div>
-                      <div className="space-y-2">
-                        {isPreviewMode ? (
-                          <div className="prose p-2 min-h-[100px]">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {comments[`${caseIndex}-${stepIndex}`] ||
-                                "*コメントなし*"}
-                            </ReactMarkdown>
-                          </div>
-                        ) : (
-                          <textarea
-                            placeholder="コメント"
-                            className="px-2 py-1 border rounded w-[40ch] h-[6em] font-mono"
-                            value={comments[`${caseIndex}-${stepIndex}`] || ""}
-                            onChange={(e) =>
-                              setComments({
-                                ...comments,
-                                [`${caseIndex}-${stepIndex}`]: e.target.value,
-                              })
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      <div className="prose">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {step.expected}
+                        </ReactMarkdown>
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex space-x-2">
+                          <button
+                            className={`px-2 py-1 ${
+                              step.result === "OK"
+                                ? "bg-green-500"
+                                : "bg-gray-400"
+                            } text-white rounded`}
+                            onClick={() =>
+                              onTestResultChange(caseIndex, stepIndex, "OK")
                             }
-                          />
-                        )}
+                          >
+                            OK
+                          </button>
+                          <button
+                            className={`px-2 py-1 ${
+                              step.result === "NG"
+                                ? "bg-red-500"
+                                : "bg-gray-400"
+                            } text-white rounded`}
+                            onClick={() =>
+                              onTestResultChange(caseIndex, stepIndex, "NG")
+                            }
+                          >
+                            NG
+                          </button>
+                          <button
+                            className={`px-2 py-1 ${
+                              step.result === "N/A"
+                                ? "bg-yellow-500"
+                                : "bg-gray-400"
+                            } text-white rounded`}
+                            onClick={() =>
+                              onTestResultChange(caseIndex, stepIndex, "N/A")
+                            }
+                          >
+                            N/A
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {isPreviewMode ? (
+                            <div className="prose p-2 min-h-[100px]">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {comments[`${caseIndex}-${stepIndex}`] ||
+                                  "*コメントなし*"}
+                              </ReactMarkdown>
+                            </div>
+                          ) : (
+                            <textarea
+                              placeholder="コメント"
+                              className="px-2 py-1 border rounded w-[40ch] h-[6em] font-mono"
+                              value={
+                                comments[`${caseIndex}-${stepIndex}`] || ""
+                              }
+                              onChange={(e) =>
+                                setComments({
+                                  ...comments,
+                                  [`${caseIndex}-${stepIndex}`]: e.target.value,
+                                })
+                              }
+                            />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))}
             </>
           ))}
           {/* テストケース間の区切り線 */}

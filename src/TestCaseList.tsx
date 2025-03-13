@@ -46,14 +46,21 @@ const TestCaseList: React.FC = () => {
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps[stepIndex].result = result;
     setTestCases(updatedCases);
-    if (!hasResultChanges) {
-      setAutoSaveStartTime(Date.now());
+    
+    // テストモード以外の場合のみ保存フラグを更新
+    if (currentMode !== "test") {
+      if (!hasResultChanges) {
+        setAutoSaveStartTime(Date.now());
+      }
+      setHasResultChanges(true);
     }
-    setHasResultChanges(true);
   };
 
   // テストスイートを保存する関数
   const saveTestCases = async () => {
+    // テストモードの場合は保存をスキップ
+    if (currentMode === "test") return;
+    
     if (!hasEditChanges && !hasResultChanges) return;
 
     try {
