@@ -29,6 +29,8 @@ export default function TestSuiteList() {
       setUserName(name);
     } catch (error) {
       console.error("Failed to load user name:", error);
+      setIsUserNameDialogOpen(true);
+      setNewUserName("");
     }
   };
 
@@ -260,7 +262,14 @@ export default function TestSuiteList() {
       {isUserNameDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-4 rounded-lg">
-            <h2 className="text-lg font-bold mb-4">ユーザー名の変更</h2>
+            <h2 className="text-lg font-bold mb-4">
+              {userName ? "ユーザー名の変更" : "ユーザー名の設定"}
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              {userName
+                ? "新しいユーザー名を入力してください"
+                : "テスト実行者の名前を設定してください"}
+            </p>
             <input
               type="text"
               value={newUserName}
