@@ -19,6 +19,14 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
 
+  const toggleAllCollapse = () => {
+    if (collapsedCases.length === testCases.length) {
+      setCollapsedCases([]);
+    } else {
+      setCollapsedCases(testCases.map((_, index) => index));
+    }
+  };
+
   const toggleCollapse = (caseIndex: number) => {
     setCollapsedCases(prev => 
       prev.includes(caseIndex) 
@@ -107,8 +115,16 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
           >
             テストケース追加
           </button>
-          <div className="text-sm">
-            テストケース数: <span className="font-bold">{testCases.length}</span>
+          <div className="flex items-center gap-4">
+            <div className="text-sm">
+              テストケース数: <span className="font-bold">{testCases.length}</span>
+            </div>
+            <button
+              onClick={toggleAllCollapse}
+              className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+            >
+              {collapsedCases.length === testCases.length ? "すべて展開" : "すべて折りたたむ"}
+            </button>
           </div>
         </div>
         <div className="text-sm text-gray-500">Alt + P でプレビュー切替</div>

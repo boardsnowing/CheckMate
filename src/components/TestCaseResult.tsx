@@ -40,6 +40,14 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
 
+  const toggleAllCollapse = () => {
+    if (collapsedCases.length === testCases.length) {
+      setCollapsedCases([]);
+    } else {
+      setCollapsedCases(testCases.map((_, index) => index));
+    }
+  };
+
   const toggleCollapse = (caseIndex: number) => {
     setCollapsedCases(prev => 
       prev.includes(caseIndex) 
@@ -217,7 +225,14 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
         </div>
       </div>
       <div className="flex justify-between items-center mb-4">
-        <div></div>
+        <div>
+          <button
+            onClick={toggleAllCollapse}
+            className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+          >
+            {collapsedCases.length === testCases.length ? "すべて展開" : "すべて折りたたむ"}
+          </button>
+        </div>
         <div className="text-sm text-gray-500">Alt + P でプレビュー切替</div>
       </div>
       <table className="w-full border-collapse border border-gray-300">
