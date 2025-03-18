@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { invoke } from "@tauri-apps/api/core";
 import TestSuiteList from "./TestSuiteList";
-import TestCaseList from "./TestCaseList"; // 仮のテストケース画面
-
-//import { invoke } from "@tauri-apps/api/core";
+import TestCaseList from "./TestCaseList";
+import TestTemplateEdit from "./components/TestTemplateEdit";
+import TestTemplateList from "./components/TestTemplateList";
 //import "./App.css";
 
 export default function App() {
@@ -15,6 +16,29 @@ export default function App() {
 
           {/* テストケース画面 */}
           <Route path="/test-cases/:suiteId" element={<TestCaseList />} />
+
+          {/* テンプレート一覧画面 */}
+          <Route path="/templates" element={<TestTemplateList />} />
+
+          {/* テンプレート作成画面 */}
+          <Route path="/template/create" element={<TestTemplateEdit onSave={async (template) => {
+            try {
+              await invoke("save_test_template", { template });
+              window.history.back();
+            } catch (error) {
+              console.error("Failed to save template:", error);
+            }
+          }} onCancel={() => window.history.back()} />} />
+
+          {/* テンプレート編集画面 */}
+          <Route path="/template/edit/:templateId" element={<TestTemplateEdit onSave={async (template) => {
+            try {
+              await invoke("update_test_template", { template });
+              window.history.back();
+            } catch (error) {
+              console.error("Failed to update template:", error);
+            }
+          }} onCancel={() => window.history.back()} />} />
         </Routes>
       </div>
     </Router>

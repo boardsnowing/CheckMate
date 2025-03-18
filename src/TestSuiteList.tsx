@@ -139,17 +139,25 @@ export default function TestSuiteList() {
           <h1 className="text-xl font-bold">テストスイート管理</h1>
           <span className="text-sm text-gray-500">v{version}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span>ユーザー名: {userName}</span>
+        <div className="flex items-center gap-4">
           <button
-            className="bg-gray-500 text-white px-2 py-1 rounded"
-            onClick={() => {
-              setNewUserName(userName);
-              setIsUserNameDialogOpen(true);
-            }}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+            onClick={() => navigate("/templates")}
           >
-            変更
+            テンプレート管理
           </button>
+          <div className="flex items-center gap-2">
+            <span>ユーザー名: {userName}</span>
+            <button
+              className="bg-gray-500 text-white px-2 py-1 rounded"
+              onClick={() => {
+                setNewUserName(userName);
+                setIsUserNameDialogOpen(true);
+              }}
+            >
+              変更
+            </button>
+          </div>
         </div>
       </div>
 
