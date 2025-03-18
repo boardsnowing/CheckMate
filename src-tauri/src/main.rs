@@ -25,7 +25,6 @@ fn load_config() -> Result<Config, String> {
     Ok(config)
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct TestCase {
     id: String,
@@ -37,6 +36,14 @@ struct TestCase {
 struct TestStep {
     step: String,
     expected: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct TestTemplate {
+    id: String,
+    name: String,
+    description: String,
+    steps: Vec<TestStep>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -68,6 +75,93 @@ struct TestSuiteData {
     name: String,
     precondition: Option<String>,
     test_cases: Vec<TestCase>,
+}
+
+#[command]
+fn get_test_templates() -> Result<Vec<TestTemplate>, String> {
+    let dir_path = PathBuf::from("test_data/templates");
+    if !dir_path.exists() {
+        fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
+        return Ok(Vec::new());
+    }
+
+    let mut templates = Vec::new();
+    for entry in read_dir(&dir_path).map_err(|e| format!("Failed to read directory: {}", e))? {
+        let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
+        let path = entry.path();
+        if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
+            let file_content = fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read file: {}", e))?;
+            let content = file_content.trim_start_matches('\u{feff}');
+            let template: TestTemplate = serde_json::from_str(content)
+                .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+            templates.push(template);
+        }
+    }
+
+    Ok(templates)
+}
+
+#[command]
+fn get_test_template(template_id: String) -> Result<TestTemplate, String> {
+    let file_path = PathBuf::from("test_data/templates").join(format!("{}.json", template_id));
+    
+    if !file_path.exists() {
+        return Err("テンプレートが見つかりません".to_string());
+    }
+
+    let file_content = fs::read_to_string(&file_path)
+        .map_err(|e| format!("Failed to read file: {}", e))?;
+    let content = file_content.trim_start_matches('\u{feff}');
+    let template: TestTemplate = serde_json::from_str(content)
+        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+    Ok(template)
+}
+
+#[command]
+fn save_test_template(template: TestTemplate) -> Result<(), String> {
+    let dir_path = PathBuf::from("test_data/templates");
+    fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
+
+    let file_path = dir_path.join(format!("{}.json", template.id));
+    let json = serde_json::to_string_pretty(&template)
+        .map_err(|e| format!("Failed to serialize template data: {}", e))?;
+    fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
+
+    println!("Successfully saved template to: {}", file_path.display());
+    Ok(())
+}
+
+#[command]
+fn update_test_template(template: TestTemplate) -> Result<(), String> {
+    let file_path = PathBuf::from("test_data/templates").join(format!("{}.json", template.id));
+    
+    if !file_path.exists() {
+        return Err("テンプレートが見つかりません".to_string());
+    }
+
+    let json = serde_json::to_string_pretty(&template)
+        .map_err(|e| format!("Failed to serialize template data: {}", e))?;
+    fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
+
+    println!("Successfully updated template: {}", file_path.display());
+    Ok(())
+}
+
+#[command]
+fn delete_test_template(template_id: String) -> Result<(), String> {
+    let file_path = PathBuf::from("test_data/templates").join(format!("{}.json", template_id));
+    
+    if !file_path.exists() {
+        return Err("テンプレートが見つかりません".to_string());
+    }
+
+    fs::remove_file(&file_path)
+        .map_err(|e| format!("Failed to delete template: {}", e))?;
+
+    println!("Successfully deleted template: {}", file_path.display());
+    Ok(())
 }
 
 #[command]
@@ -333,7 +427,12 @@ fn main() {
             get_test_results,
             delete_test_result,
             check_test_result_exists,
-            get_app_version
+            get_app_version,
+            save_test_template,
+            get_test_templates,
+            get_test_template,
+            update_test_template,
+            delete_test_template
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
