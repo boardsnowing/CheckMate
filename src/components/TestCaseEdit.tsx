@@ -2,6 +2,7 @@ import { TestCase } from "../types/TestCase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useState, useEffect } from "react";
+import TestTemplateSelectModal from "./TestTemplateSelectModal";
 
 interface TestCaseEditProps {
   testCases: TestCase[];
@@ -29,6 +30,12 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
     stepIndex: undefined,
     visible: false,
   });
+
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [selectedStepIndex, setSelectedStepIndex] = useState<{
+    caseIndex: number;
+    stepIndex: number;
+  } | null>(null);
 
   const toggleAllCollapse = () => {
     if (collapsedCases.length === testCases.length) {
@@ -153,6 +160,28 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
 
   return (
     <div>
+      <TestTemplateSelectModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => {
+          setIsTemplateModalOpen(false);
+          setSelectedStepIndex(null);
+        }}
+        onSelect={(templateSteps) => {
+          if (selectedStepIndex) {
+            const updatedCases = [...testCases];
+            const { caseIndex, stepIndex } = selectedStepIndex;
+
+            // テンプレートのステップを選択位置の後に挿入
+            updatedCases[caseIndex].steps.splice(
+              stepIndex + 1,
+              0,
+              ...templateSteps
+            );
+
+            onTestCaseChange(updatedCases);
+          }
+        }}
+      />
       {/* コンテキストメニュー */}
       {contextMenu.visible && (
         <div
@@ -196,6 +225,19 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
               >
                 テストステップを挿入
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedStepIndex({
+                    caseIndex: contextMenu.caseIndex,
+                    stepIndex: contextMenu.stepIndex!,
+                  });
+                  setIsTemplateModalOpen(true);
+                  setContextMenu((prev) => ({ ...prev, visible: false }));
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100"
+              >
+                テンプレートを挿入
               </button>
               <button
                 onClick={() => {

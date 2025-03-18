@@ -22,8 +22,7 @@ const TestTemplateEdit: React.FC<TestTemplateEditProps> = ({
   onCancel,
 }) => {
   const { templateId } = useParams<{ templateId: string }>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  //const [error, setError] = useState<string | null>(null);
   const [template, setTemplate] = useState<TestTemplate>({
     id: templateId || `template-${Date.now()}`,
     name: "",
@@ -34,8 +33,6 @@ const TestTemplateEdit: React.FC<TestTemplateEditProps> = ({
   useEffect(() => {
     if (templateId) {
       loadTemplate();
-    } else {
-      setLoading(false);
     }
   }, [templateId]);
 
@@ -45,12 +42,11 @@ const TestTemplateEdit: React.FC<TestTemplateEditProps> = ({
         templateId,
       });
       setTemplate(loadedTemplate);
-      setError(null);
+      //setError(null);
     } catch (err) {
-      setError("テンプレートの読み込みに失敗しました");
+      //setError("テンプレートの読み込みに失敗しました");
       console.error("Failed to load template:", err);
     } finally {
-      setLoading(false);
     }
   };
   const [isPreviewMode, setIsPreviewMode] = useState(false);
