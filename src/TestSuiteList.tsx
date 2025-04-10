@@ -70,6 +70,13 @@ export default function TestSuiteList() {
   const addTestSuite = async () => {
     if (!newSuiteName.trim()) return;
 
+    // 既存のテスト管理番号をチェック
+    const existingSuite = testSuites.find(suite => suite.id === newtestSuiteId);
+    if (existingSuite) {
+      alert(`テスト管理番号「${newtestSuiteId}」は既に使用されています。`);
+      return;
+    }
+
     try {
       const newSuite = await invoke<TestSuite>("create_test_suite", {
         name: newSuiteName,
