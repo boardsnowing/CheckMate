@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useState, useEffect } from "react";
 import TestTemplateSelectModal from "./TestTemplateSelectModal";
+import TestCaseDuplicateModal from "./TestCaseDuplicateModal";
 
 interface TestCaseEditProps {
   testCases: TestCase[];
@@ -32,10 +33,12 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   });
 
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   const [selectedStepIndex, setSelectedStepIndex] = useState<{
     caseIndex: number;
     stepIndex: number;
   } | null>(null);
+  const [duplicateSourceIndex, setDuplicateSourceIndex] = useState<number>(-1);
 
   const toggleAllCollapse = () => {
     if (collapsedCases.length === testCases.length) {
@@ -160,6 +163,23 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
 
   return (
     <div>
+      <TestCaseDuplicateModal
+        isOpen={isDuplicateModalOpen}
+        onClose={() => setIsDuplicateModalOpen(false)}
+        onSelect={(insertIndex) => {
+          const sourceCase = testCases[duplicateSourceIndex];
+          const duplicatedCase = {
+            ...JSON.parse(JSON.stringify(sourceCase)),
+            id: `tc-${testCases.length + 1}`,
+          };
+          const updatedCases = [...testCases];
+          updatedCases.splice(insertIndex, 0, duplicatedCase);
+          onTestCaseChange(updatedCases);
+          setIsDuplicateModalOpen(false);
+        }}
+        testCases={testCases}
+        sourceIndex={duplicateSourceIndex}
+      />
       <TestTemplateSelectModal
         isOpen={isTemplateModalOpen}
         onClose={() => {
@@ -201,6 +221,16 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
               >
                 テストケースを挿入
+              </button>
+              <button
+                onClick={() => {
+                  setDuplicateSourceIndex(contextMenu.caseIndex);
+                  setIsDuplicateModalOpen(true);
+                  setContextMenu((prev) => ({ ...prev, visible: false }));
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100"
+              >
+                テストケースを複製
               </button>
               <button
                 onClick={() => {
