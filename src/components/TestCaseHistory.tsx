@@ -14,10 +14,18 @@ import {
   pdf,
   Font,
 } from "@react-pdf/renderer";
+import { marked } from "marked";
 
 interface TestCaseHistoryProps {
   testCases: TestCase[];
   testSuiteId: string;
+}
+
+interface TestSuiteData {
+  id: string;
+  name: string;
+  precondition?: string;
+  test_cases: TestCase[];
 }
 
 interface TestResult {
@@ -55,10 +63,23 @@ const TestCaseHistory: React.FC<TestCaseHistoryProps> = ({
 }) => {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
+  const [testSuiteName, setTestSuiteName] = useState<string>("");
 
   useEffect(() => {
     loadTestResults();
+    loadTestSuiteName();
   }, [testSuiteId]);
+
+  const loadTestSuiteName = async () => {
+    try {
+      const testSuite = await invoke<TestSuiteData>("get_test_suite", {
+        id: testSuiteId,
+      });
+      setTestSuiteName(testSuite.name);
+    } catch (error) {
+      console.error("テストスイート名の取得に失敗しました:", error);
+    }
+  };
 
   const loadTestResults = async () => {
     try {
@@ -121,6 +142,49 @@ ${testCasesXml}  </testsuite>
       padding: 30,
       fontFamily: "SourceHanSansHW",
     },
+    coverTitle: {
+      marginTop: 200,
+      alignItems: "center",
+    },
+    coverTitleText: {
+      fontSize: 24,
+      marginBottom: 10,
+      textAlign: "center",
+    },
+    coverSubTitleText: {
+      fontSize: 18,
+      textAlign: "center",
+    },
+    stampSection: {
+      position: "absolute",
+      bottom: 50,
+      right: 50,
+    },
+    stampTable: {
+      width: 180,
+      borderStyle: "solid",
+      borderWidth: 1,
+      borderColor: "#000",
+    },
+    stampRow: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: "#000",
+    },
+    stampHeader: {
+      width: 60,
+      padding: 5,
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+      textAlign: "center",
+      fontSize: 10,
+    },
+    stampCell: {
+      width: 60,
+      height: 60,
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+    },
     header: {
       fontSize: 18,
       marginBottom: 20,
@@ -163,14 +227,85 @@ ${testCasesXml}  </testsuite>
   });
 
   // PDFドキュメントの定義
+  // MarkdownをHTMLに変換し、スタイル付きのテキストに変換する関数
+  const convertMarkdownToStyledText = (markdown: string): React.ReactNode => {
+    const htmlText = marked.parse(markdown, { async: false });
+    // HTMLをパースしてスタイル付きのテキストに変換
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlText;
+
+    const convertNodeToStyledText = (node: Node): React.ReactNode => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent;
+      }
+
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as Element;
+        const children = Array.from(element.childNodes).map(
+          convertNodeToStyledText
+        );
+
+        switch (element.tagName.toLowerCase()) {
+          case "h1":
+            return <Text style={{ fontSize: 16 }}>{children}</Text>; // 通常+6
+          case "h2":
+            return <Text style={{ fontSize: 14 }}>{children}</Text>; // 通常+4
+          case "h3":
+            return <Text style={{ fontSize: 12 }}>{children}</Text>; // 通常+2
+          case "strong":
+          case "b":
+            return <Text style={{ fontWeight: "bold" }}>{children}</Text>;
+          case "em":
+          case "i":
+            return <Text style={{ fontStyle: "italic" }}>{children}</Text>;
+          case "code":
+            return <Text style={{ fontFamily: "Courier" }}>{children}</Text>;
+          case "ul":
+            return <View style={{ marginLeft: 10 }}>{children}</View>;
+          case "li":
+            return <Text>• {children}</Text>;
+          default:
+            return <Text>{children}</Text>;
+        }
+      }
+
+      return null;
+    };
+
+    return convertNodeToStyledText(tempDiv);
+  };
+
   const TestResultPDF = ({ result }: { result: TestResult }) => {
     const counts = calculateStatusCounts(result);
 
     return (
       <Document>
-        <Page size="A4" style={styles.page}>
-          <Text style={styles.header}>テスト結果: {result.test_run_name}</Text>
+        {/* 表紙 */}
+        <Page size="A4" orientation="landscape" style={styles.page}>
+          <View style={styles.coverTitle}>
+            <Text style={styles.coverTitleText}>{testSuiteName}</Text>
+            <Text style={styles.coverSubTitleText}>{testSuiteId}</Text>
+          </View>
 
+          {/* 押印欄 */}
+          <View style={styles.stampSection}>
+            <View style={styles.stampTable}>
+              <View style={styles.stampRow}>
+                <Text style={styles.stampHeader}>承認</Text>
+                <Text style={styles.stampHeader}>照査</Text>
+                <Text style={styles.stampHeader}>作成</Text>
+              </View>
+              <View style={styles.stampRow}>
+                <Text style={styles.stampCell}></Text>
+                <Text style={styles.stampCell}></Text>
+                <Text style={styles.stampCell}></Text>
+              </View>
+            </View>
+          </View>
+        </Page>
+
+        {/* テスト結果ページ */}
+        <Page size="A4" orientation="landscape" style={styles.page}>
           <View style={styles.summary}>
             <View style={[styles.summaryItem, { backgroundColor: "#e8f5e9" }]}>
               <Text>OK: {counts.OK}</Text>
@@ -206,25 +341,27 @@ ${testCasesXml}  </testsuite>
                   style={styles.tableRow}
                 >
                   {stepIndex === 0 && (
-                    <Text style={[styles.tableCell, styles.testCase]}>
-                      {testCase?.name || "不明なテストケース"}
-                    </Text>
+                    <View style={[styles.tableCell, styles.testCase]}>
+                      {convertMarkdownToStyledText(
+                        testCase?.name || "不明なテストケース"
+                      )}
+                    </View>
                   )}
                   {stepIndex !== 0 && (
                     <Text style={[styles.tableCell, styles.testCase]}></Text>
                   )}
-                  <Text style={[styles.tableCell, styles.step]}>
-                    {result.step}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.expected]}>
-                    {result.expected}
-                  </Text>
+                  <View style={[styles.tableCell, styles.step]}>
+                    {convertMarkdownToStyledText(result.step)}
+                  </View>
+                  <View style={[styles.tableCell, styles.expected]}>
+                    {convertMarkdownToStyledText(result.expected)}
+                  </View>
                   <Text style={[styles.tableCell, styles.result]}>
                     {result.status}
                   </Text>
-                  <Text style={[styles.tableCell, styles.comment]}>
-                    {result.comment}
-                  </Text>
+                  <View style={[styles.tableCell, styles.comment]}>
+                    {convertMarkdownToStyledText(result.comment)}
+                  </View>
                 </View>
               ));
             })}
@@ -245,7 +382,7 @@ ${testCasesXml}  </testsuite>
             extensions: ["pdf"],
           },
         ],
-        defaultPath: `${selectedResult.test_run_name}.pdf`,
+        defaultPath: `${selectedResult.test_run_name.replace(".json", "")}.pdf`,
       });
 
       if (filePath) {
@@ -273,7 +410,7 @@ ${testCasesXml}  </testsuite>
             extensions: ["xml"],
           },
         ],
-        defaultPath: `${selectedResult.test_run_name}.xml`,
+        defaultPath: `${selectedResult.test_run_name.replace(".json", "")}.xml`,
       });
 
       if (filePath) {
