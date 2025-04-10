@@ -27,6 +27,7 @@ const TestCaseList: React.FC = () => {
   const [suiteName, setSuiteName] = useState<string>("");
   const [precondition, setPrecondition] = useState<string>("");
   const [isPreconditionEditOpen, setIsPreconditionEditOpen] = useState(false);
+  const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(true);
 
   // テストケースの編集を処理
   const handleTestCaseChange = (updatedCases: TestCase[]) => {
@@ -212,7 +213,7 @@ const TestCaseList: React.FC = () => {
 
   //保存タイマー処理
   useEffect(() => {
-    if (!autoSaveStartTime) return;
+    if (!autoSaveStartTime || !isAutoSaveEnabled) return;
 
     const timer = setTimeout(() => {
       saveTestCases();
@@ -222,13 +223,30 @@ const TestCaseList: React.FC = () => {
       clearTimeout(timer);
       setAutoSaveStartTime(null);
     };
-  }, [autoSaveStartTime]);
+  }, [autoSaveStartTime, isAutoSaveEnabled]);
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">
-        テストケース一覧（{suiteName}）
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">
+          テストケース一覧（{suiteName}）
+        </h2>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">自動保存</span>
+          <button
+            onClick={() => setIsAutoSaveEnabled(!isAutoSaveEnabled)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              isAutoSaveEnabled ? 'bg-blue-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isAutoSaveEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
 
       <PreconditionView
         precondition={precondition}
