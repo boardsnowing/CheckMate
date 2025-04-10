@@ -71,7 +71,9 @@ export default function TestSuiteList() {
     if (!newSuiteName.trim()) return;
 
     // 既存のテスト管理番号をチェック
-    const existingSuite = testSuites.find(suite => suite.id === newtestSuiteId);
+    const existingSuite = testSuites.find(
+      (suite) => suite.id === newtestSuiteId
+    );
     if (existingSuite) {
       alert(`テスト管理番号「${newtestSuiteId}」は既に使用されています。`);
       return;
@@ -250,17 +252,17 @@ export default function TestSuiteList() {
             <div className="space-y-4">
               <input
                 type="text"
-                value={newSuiteName}
-                onChange={(e) => setNewSuiteName(e.target.value)}
-                placeholder="テストスイート名"
+                value={newtestSuiteId}
+                onChange={(e) => setNewtestSuiteId(e.target.value)}
+                placeholder="テスト管理番号"
                 className="border p-2 w-full"
                 required
               />
               <input
                 type="text"
-                value={newtestSuiteId}
-                onChange={(e) => setNewtestSuiteId(e.target.value)}
-                placeholder="テスト管理番号"
+                value={newSuiteName}
+                onChange={(e) => setNewSuiteName(e.target.value)}
+                placeholder="テストスイート名"
                 className="border p-2 w-full"
                 required
               />
