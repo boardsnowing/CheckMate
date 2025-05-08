@@ -38,7 +38,6 @@ const TestResultMerge = () => {
   const [file1, setFile1] = useState<TestResult | null>(null);
   const [file2, setFile2] = useState<TestResult | null>(null);
   const [conflicts, setConflicts] = useState<ConflictItem[]>([]);
-  const [mergedResult, setMergedResult] = useState<TestResult | null>(null);
   const [selectedFile1Items, setSelectedFile1Items] = useState<Set<string>>(new Set());
   const [selectedFile2Items, setSelectedFile2Items] = useState<Set<string>>(new Set());
   const [outputFileName, setOutputFileName] = useState("");
@@ -89,6 +88,8 @@ const TestResultMerge = () => {
   // 重複チェック
   const checkConflicts = (file1: TestResult, file2: TestResult) => {
     const newConflicts: ConflictItem[] = [];
+    const newSelectedFile1Items = new Set<string>();
+    const newSelectedFile2Items = new Set<string>();
 
     file1.test_results.forEach((result1) => {
       const matchingResult = file2.test_results.find(
@@ -102,23 +103,32 @@ const TestResultMerge = () => {
             step1.status !== step2.status ||
             step1.comment !== step2.comment
           ) {
+            const conflictId = `${result1.test_case_id}-${stepIndex}`;
             newConflicts.push({
               caseId: result1.test_case_id,
               stepIndex,
               file1Result: step1,
               file2Result: step2,
             });
+
+            // 「未実施」以外のステータスを自動選択
+            if (step1.status === "未実施" && step2.status !== "未実施") {
+              newSelectedFile2Items.add(conflictId);
+            } else if (step1.status !== "未実施" && step2.status === "未実施") {
+              newSelectedFile1Items.add(conflictId);
+            }
           }
         });
       }
     });
 
     setConflicts(newConflicts);
+    setSelectedFile1Items(newSelectedFile1Items);
+    setSelectedFile2Items(newSelectedFile2Items);
   };
 
   // 結果の選択処理
   const handleResultSelection = (conflictId: string, fileNumber: 1 | 2) => {
-    const [caseId, stepIndex] = conflictId.split("-");
     if (fileNumber === 1) {
       setSelectedFile1Items(new Set([...selectedFile1Items, conflictId]));
       setSelectedFile2Items(
@@ -190,7 +200,6 @@ const TestResultMerge = () => {
       });
 
       alert("マージ結果を保存しました");
-      setMergedResult(merged);
     } catch (error) {
       console.error("Failed to save merged result:", error);
       alert("マージ結果の保存に失敗しました");
