@@ -118,8 +118,6 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
       // テスト結果を保存
       await invoke("save_test_result", {
         testSuiteId,
-        testSuiteName,
-        executedBy: "tester1", // TODO: ログインユーザー名を使用
         testResults,
         fileName: fullFileName,
       });

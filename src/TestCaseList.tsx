@@ -301,6 +301,12 @@ const TestCaseList: React.FC = () => {
             >
               閲覧モード
             </button>
+            <button
+              onClick={() => navigate(`/test-cases/${suiteId}/merge`)}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              結果マージ
+            </button>
           </div>
         </div>
       </div>

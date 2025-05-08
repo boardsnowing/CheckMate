@@ -4,6 +4,7 @@ import TestSuiteList from "./TestSuiteList";
 import TestCaseList from "./TestCaseList";
 import TestTemplateEdit from "./components/TestTemplateEdit";
 import TestTemplateList from "./components/TestTemplateList";
+import TestResultMerge from "./components/TestResultMerge";
 //import "./App.css";
 
 export default function App() {
@@ -39,6 +40,9 @@ export default function App() {
               console.error("Failed to update template:", error);
             }
           }} onCancel={() => window.history.back()} />} />
+
+          {/* 試験結果マージ画面 */}
+          <Route path="/test-cases/:suiteId/merge" element={<TestResultMerge />} />
         </Routes>
       </div>
     </Router>

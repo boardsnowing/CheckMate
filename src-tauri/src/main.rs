@@ -90,8 +90,8 @@ fn get_test_templates() -> Result<Vec<TestTemplate>, String> {
         let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
         let path = entry.path();
         if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
-            let file_content = fs::read_to_string(&path)
-                .map_err(|e| format!("Failed to read file: {}", e))?;
+            let file_content =
+                fs::read_to_string(&path).map_err(|e| format!("Failed to read file: {}", e))?;
             let content = file_content.trim_start_matches('\u{feff}');
             let template: TestTemplate = serde_json::from_str(content)
                 .map_err(|e| format!("Failed to parse JSON: {}", e))?;
@@ -105,16 +105,16 @@ fn get_test_templates() -> Result<Vec<TestTemplate>, String> {
 #[command]
 fn get_test_template(template_id: String) -> Result<TestTemplate, String> {
     let file_path = PathBuf::from("test_data/templates").join(format!("{}.json", template_id));
-    
+
     if !file_path.exists() {
         return Err("テンプレートが見つかりません".to_string());
     }
 
-    let file_content = fs::read_to_string(&file_path)
-        .map_err(|e| format!("Failed to read file: {}", e))?;
+    let file_content =
+        fs::read_to_string(&file_path).map_err(|e| format!("Failed to read file: {}", e))?;
     let content = file_content.trim_start_matches('\u{feff}');
-    let template: TestTemplate = serde_json::from_str(content)
-        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+    let template: TestTemplate =
+        serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
     Ok(template)
 }
@@ -136,7 +136,7 @@ fn save_test_template(template: TestTemplate) -> Result<(), String> {
 #[command]
 fn update_test_template(template: TestTemplate) -> Result<(), String> {
     let file_path = PathBuf::from("test_data/templates").join(format!("{}.json", template.id));
-    
+
     if !file_path.exists() {
         return Err("テンプレートが見つかりません".to_string());
     }
@@ -152,13 +152,12 @@ fn update_test_template(template: TestTemplate) -> Result<(), String> {
 #[command]
 fn delete_test_template(template_id: String) -> Result<(), String> {
     let file_path = PathBuf::from("test_data/templates").join(format!("{}.json", template_id));
-    
+
     if !file_path.exists() {
         return Err("テンプレートが見つかりません".to_string());
     }
 
-    fs::remove_file(&file_path)
-        .map_err(|e| format!("Failed to delete template: {}", e))?;
+    fs::remove_file(&file_path).map_err(|e| format!("Failed to delete template: {}", e))?;
 
     println!("Successfully deleted template: {}", file_path.display());
     Ok(())
@@ -167,8 +166,6 @@ fn delete_test_template(template_id: String) -> Result<(), String> {
 #[command]
 fn save_test_result(
     test_suite_id: String,
-    _test_suite_name: String,
-    _executed_by: String,
     test_results: Vec<TestCaseResult>,
     file_name: String,
 ) -> Result<(), String> {
@@ -231,8 +228,8 @@ fn get_test_suites() -> Result<Vec<TestSuiteData>, String> {
                     let file_content = fs::read_to_string(&file_path)
                         .map_err(|e| format!("Failed to read file: {}", e))?;
                     let content = file_content.trim_start_matches('\u{feff}');
-                    let data: TestSuiteData =
-                    serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
+                    let data: TestSuiteData = serde_json::from_str(content)
+                        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
                     test_suites.push(data);
                 }
@@ -251,8 +248,8 @@ fn get_test_suite(id: String) -> Result<TestSuiteData, String> {
         return Err("テストスイートが見つかりません".to_string());
     }
 
-    let file_content = fs::read_to_string(&file_path)
-        .map_err(|e| format!("Failed to read file: {}", e))?;
+    let file_content =
+        fs::read_to_string(&file_path).map_err(|e| format!("Failed to read file: {}", e))?;
     let content = file_content.trim_start_matches('\u{feff}');
     let data: TestSuiteData =
         serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
@@ -329,16 +326,34 @@ fn delete_test_result(test_suite_id: String, file_name: String) -> Result<(), St
         return Err("指定されたテスト結果が見つかりません。".to_string());
     }
 
-    fs::remove_file(&file_path)
-        .map_err(|e| format!("テスト結果の削除に失敗しました: {}", e))?;
+    fs::remove_file(&file_path).map_err(|e| format!("テスト結果の削除に失敗しました: {}", e))?;
 
     Ok(())
 }
 
 #[command]
+fn load_test_result(test_suite_id: String, file_name: String) -> Result<TestResult, String> {
+    let file_path = PathBuf::from("test_results")
+        .join(&test_suite_id)
+        .join(&file_name);
+
+    if !file_path.exists() {
+        return Err("指定されたテスト結果が見つかりません。".to_string());
+    }
+
+    let file_content =
+        fs::read_to_string(&file_path).map_err(|e| format!("Failed to read file: {}", e))?;
+    let content = file_content.trim_start_matches('\u{feff}');
+    let result: TestResult =
+        serde_json::from_str(content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+    Ok(result)
+}
+
+#[command]
 fn get_test_results(test_suite_id: String) -> Result<Vec<TestResult>, String> {
     let dir_path = PathBuf::from("test_results").join(&test_suite_id);
-    
+
     if !dir_path.exists() {
         return Ok(Vec::new());
     }
@@ -347,10 +362,10 @@ fn get_test_results(test_suite_id: String) -> Result<Vec<TestResult>, String> {
     for entry in read_dir(&dir_path).map_err(|e| format!("Failed to read directory: {}", e))? {
         let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
         let path = entry.path();
-        
+
         if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
-            let file_content = fs::read_to_string(&path)
-                .map_err(|e| format!("Failed to read file: {}", e))?;
+            let file_content =
+                fs::read_to_string(&path).map_err(|e| format!("Failed to read file: {}", e))?;
             let content = file_content.trim_start_matches('\u{feff}');
             let result: TestResult = serde_json::from_str(content)
                 .map_err(|e| format!("Failed to parse JSON: {}", e))?;
@@ -366,20 +381,24 @@ fn update_user_name(new_name: String) -> Result<(), String> {
     let config = Config {
         user_name: new_name,
     };
-    
+
     let config_path = PathBuf::from("conf.json");
     let json = serde_json::to_string_pretty(&config)
         .map_err(|e| format!("設定のシリアライズに失敗しました: {}", e))?;
-    
+
     fs::write(&config_path, json)
         .map_err(|e| format!("設定ファイルの書き込みに失敗しました: {}", e))?;
-    
+
     *CONFIG.lock().unwrap() = Some(config);
     Ok(())
 }
 
 #[command]
-fn create_test_suite(name: String, test_suite_id: String, precondition: Option<String>) -> Result<TestSuiteData, String> {
+fn create_test_suite(
+    name: String,
+    test_suite_id: String,
+    precondition: Option<String>,
+) -> Result<TestSuiteData, String> {
     let dir_path = PathBuf::from("test_data");
     fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
 
@@ -432,7 +451,8 @@ fn main() {
             get_test_templates,
             get_test_template,
             update_test_template,
-            delete_test_template
+            delete_test_template,
+            load_test_result
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
