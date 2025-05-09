@@ -16,6 +16,14 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   onTestCaseChange,
   onSave,
 }) => {
+  // 最大のテストケースIDを取得する関数
+  const getMaxTestCaseId = () => {
+    return testCases.reduce((max, testCase) => {
+      const currentId = parseInt(testCase.id.replace('tc-', ''));
+      return currentId > max ? currentId : max;
+    }, 0);
+  };
+
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
   const [contextMenu, setContextMenu] = useState<{
@@ -89,7 +97,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
   const insertTestCase = (caseIndex: number) => {
     const updatedCases = [...testCases];
     updatedCases.splice(caseIndex + 1, 0, {
-      id: `tc-${testCases.length + 1}`,
+      id: `tc-${getMaxTestCaseId() + 1}`,
       name: "新しいテストケース",
       steps: [
         {
@@ -170,7 +178,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
           const sourceCase = testCases[duplicateSourceIndex];
           const duplicatedCase = {
             ...JSON.parse(JSON.stringify(sourceCase)),
-            id: `tc-${testCases.length + 1}`,
+            id: `tc-${getMaxTestCaseId() + 1}`,
           };
           const updatedCases = [...testCases];
           updatedCases.splice(insertIndex, 0, duplicatedCase);
@@ -288,7 +296,7 @@ const TestCaseEdit: React.FC<TestCaseEditProps> = ({
           <button
             onClick={() => {
               const newTestCase: TestCase = {
-                id: `tc-${testCases.length + 1}`,
+                id: `tc-${getMaxTestCaseId() + 1}`,
                 name: "新しいテストケース",
                 steps: [
                   {
