@@ -42,10 +42,12 @@ const TestCaseList: React.FC = () => {
   const handleTestResultChange = (
     caseIndex: number,
     stepIndex: number,
-    result: "OK" | "NG" | "N/A"
+    result: "OK" | "NG" | "N/A",
+    caseResult: "OK" | "NG" | "未実施"
   ) => {
     const updatedCases = [...testCases];
     updatedCases[caseIndex].steps[stepIndex].result = result;
+    updatedCases[caseIndex].result = caseResult;
     setTestCases(updatedCases);
 
     // テストモード以外の場合のみ保存フラグを更新
