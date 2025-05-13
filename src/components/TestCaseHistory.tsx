@@ -456,14 +456,30 @@ ${testCasesXml}  </testsuite>
       Unmarked: 0,
     };
 
-    // 実行済みの結果を集計
+    // テストケース全体の結果を集計
     result.test_results.forEach((testResult) => {
-      testResult.results.forEach((result) => {
-        if (result.status === "OK") counts.OK++;
-        else if (result.status === "NG") counts.NG++;
-        else if (result.status === "N/A") counts.NA++;
-        else counts.Unmarked++;
+      // テストケースの結果を判定
+      let hasUnmarked = false;
+      let hasNG = false;
+      let validSteps = 0;
+
+      testResult.results.forEach(step => {
+        if (step.status === "N/A") return; // N/Aは判定から除外
+        
+        if (!step.status || step.status === "") {
+          hasUnmarked = true;
+        } else if (step.status === "NG") {
+          hasNG = true;
+        } else if (step.status === "OK") {
+          validSteps++;
+        }
       });
+
+      // テストケース全体の判定
+      if (hasUnmarked) counts.Unmarked++;
+      else if (hasNG) counts.NG++;
+      else if (validSteps > 0) counts.OK++;
+      else counts.NA++;
     });
 
     return counts;

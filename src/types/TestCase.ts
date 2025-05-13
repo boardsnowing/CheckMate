@@ -8,6 +8,7 @@ export interface TestCase {
   id: string;
   name: string;
   steps: TestStep[];
+  result?: "OK" | "NG" | "未実施";
 }
 
 export interface TestSuite {

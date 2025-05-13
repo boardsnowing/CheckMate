@@ -1,4 +1,4 @@
-import { TestCase } from "../types/TestCase";
+import { TestCase, TestStep } from "../types/TestCase";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -11,7 +11,8 @@ interface TestCaseResultProps {
   onTestResultChange: (
     caseIndex: number,
     stepIndex: number,
-    result: "OK" | "NG" | "N/A"
+    result: "OK" | "NG" | "N/A",
+    caseResult: "OK" | "NG" | "未実施"
   ) => void;
 }
 
@@ -24,6 +25,7 @@ interface TestStepResult {
 
 interface TestCaseResultData {
   test_case_id: string;
+  result: "OK" | "NG" | "未実施";
   results: TestStepResult[];
 }
 
@@ -43,12 +45,9 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
     };
 
     testCases.forEach((testCase) => {
-      testCase.steps.forEach((step) => {
-        if (step.result === "OK") counts.OK++;
-        else if (step.result === "NG") counts.NG++;
-        else if (step.result === "N/A") counts.NA++;
-        else counts.Unmarked++;
-      });
+      if (testCase.result === "OK") counts.OK++;
+      else if (testCase.result === "NG") counts.NG++;
+      else counts.Unmarked++;
     });
 
     return counts;
@@ -88,15 +87,19 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
       return false;
     }
 
-    const testResults: TestCaseResultData[] = testCases.map((testCase) => ({
-      test_case_id: testCase.id,
-      results: testCase.steps.map((step, stepIndex) => ({
-        step: step.step,
-        expected: step.expected,
-        status: step.result || "未実施",
-        comment: comments[`${testCases.indexOf(testCase)}-${stepIndex}`] || "",
-      })),
-    }));
+    const testResults: TestCaseResultData[] = testCases.map((testCase) => {
+      const caseResult = judgeTestCase(testCase.steps);
+      return {
+        test_case_id: testCase.id,
+        result: caseResult,
+        results: testCase.steps.map((step, stepIndex) => ({
+          step: step.step,
+          expected: step.expected,
+          status: step.result || "未実施",
+          comment: comments[`${testCases.indexOf(testCase)}-${stepIndex}`] || "",
+        })),
+      };
+    });
 
     const fullFileName = `${fileName.trim()}.json`;
     try {
@@ -202,6 +205,29 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
     }
   };
 
+  // テストケースの判定を行う関数
+  const judgeTestCase = (steps: TestStep[]): "OK" | "NG" | "未実施" => {
+    let hasUnmarked = false;
+    let hasNG = false;
+    let validSteps = 0;
+
+    steps.forEach(step => {
+      if (step.result === "N/A") return; // N/Aは判定から除外
+      
+      if (!step.result) {
+        hasUnmarked = true;
+      } else if (step.result === "NG") {
+        hasNG = true;
+      } else if (step.result === "OK") {
+        validSteps++;
+      }
+    });
+
+    if (hasUnmarked) return "未実施";
+    if (hasNG) return "NG";
+    return validSteps > 0 ? "OK" : "未実施";
+  };
+
   const loadTestResult = (result: any) => {
     // コメントと結果を復元
     const newComments: { [key: string]: string } = {};
@@ -213,10 +239,13 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
         if (testCase) {
           const caseIndex = testCases.indexOf(testCase);
           newComments[`${caseIndex}-${stepIndex}`] = stepResult.comment;
+          const status = stepResult.status as "OK" | "NG" | "N/A";
+          const caseResult = judgeTestCase(testCase.steps);
           onTestResultChange(
             caseIndex,
             stepIndex,
-            stepResult.status as "OK" | "NG" | "N/A"
+            status,
+            caseResult
           );
         }
       });
@@ -351,11 +380,20 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                     <span>{caseIndex + 1}.</span>
                   </div>
                 </td>
-                <td colSpan={3} className="border border-gray-300 px-2 py-1">
+                <td colSpan={2} className="border border-gray-300 px-2 py-1">
                   <div className="prose flex items-center">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {testCase.name}
                     </ReactMarkdown>
+                  </div>
+                </td>
+                <td colSpan={1} className="border border-gray-300 px-2 py-1">
+                  <div className={`px-3 py-1 rounded text-center ${
+                    testCase.result === "OK" ? "bg-green-100 text-green-800" :
+                    testCase.result === "NG" ? "bg-red-100 text-red-800" :
+                    "bg-gray-100 text-gray-800"
+                  }`}>
+                    {testCase.result || "未実施"}
                   </div>
                 </td>
               </tr>
@@ -394,9 +432,12 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                                 ? "bg-green-500"
                                 : "bg-gray-400"
                             } text-white rounded`}
-                            onClick={() =>
-                              onTestResultChange(caseIndex, stepIndex, "OK")
-                            }
+                            onClick={() => {
+                              const newSteps = [...testCase.steps];
+                              newSteps[stepIndex] = { ...step, result: "OK" };
+                              const caseResult = judgeTestCase(newSteps);
+                              onTestResultChange(caseIndex, stepIndex, "OK", caseResult);
+                            }}
                           >
                             OK
                           </button>
@@ -406,9 +447,12 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                                 ? "bg-red-500"
                                 : "bg-gray-400"
                             } text-white rounded`}
-                            onClick={() =>
-                              onTestResultChange(caseIndex, stepIndex, "NG")
-                            }
+                            onClick={() => {
+                              const newSteps = [...testCase.steps];
+                              newSteps[stepIndex] = { ...step, result: "NG" };
+                              const caseResult = judgeTestCase(newSteps);
+                              onTestResultChange(caseIndex, stepIndex, "NG", caseResult);
+                            }}
                           >
                             NG
                           </button>
@@ -418,9 +462,12 @@ const TestCaseResult: React.FC<TestCaseResultProps> = ({
                                 ? "bg-yellow-500"
                                 : "bg-gray-400"
                             } text-white rounded`}
-                            onClick={() =>
-                              onTestResultChange(caseIndex, stepIndex, "N/A")
-                            }
+                            onClick={() => {
+                              const newSteps = [...testCase.steps];
+                              newSteps[stepIndex] = { ...step, result: "N/A" };
+                              const caseResult = judgeTestCase(newSteps);
+                              onTestResultChange(caseIndex, stepIndex, "N/A", caseResult);
+                            }}
                           >
                             N/A
                           </button>
