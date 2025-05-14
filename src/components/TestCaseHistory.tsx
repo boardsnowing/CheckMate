@@ -279,13 +279,34 @@ ${testCasesXml}  </testsuite>
   const TestResultPDF = ({ result }: { result: TestResult }) => {
     const counts = calculateStatusCounts(result);
 
+    // テストケース単位の集計を計算
+    const testCaseSummary = result.test_results.map((testResult) => {
+      const testCase = testCases.find((tc) => tc.id === testResult.test_case_id);
+      const statusCounts = {
+        OK: 0,
+        NG: 0,
+        NA: 0
+      };
+      
+      testResult.results.forEach(step => {
+        if (step.status === "OK") statusCounts.OK++;
+        else if (step.status === "NG") statusCounts.NG++;
+        else if (step.status === "N/A") statusCounts.NA++;
+      });
+
+      return {
+        name: testCase?.name || "不明なテストケース",
+        counts: statusCounts
+      };
+    });
+
     return (
       <Document>
         {/* 表紙 */}
         <Page size="A4" orientation="landscape" style={styles.page}>
           <View style={styles.coverTitle}>
             <Text style={styles.coverTitleText}>{testSuiteName}</Text>
-            <Text style={styles.coverSubTitleText}>{testSuiteId}</Text>
+            {/* <Text style={styles.coverSubTitleText}>{testSuiteId}</Text> */}
           </View>
 
           {/* 押印欄 */}
@@ -305,8 +326,11 @@ ${testCasesXml}  </testsuite>
           </View>
         </Page>
 
-        {/* テスト結果ページ */}
+        {/* 集計ページ */}
         <Page size="A4" orientation="landscape" style={styles.page}>
+          <Text style={{ fontSize: 18, marginBottom: 20 }}>テスト結果集計</Text>
+          
+          {/* 全体集計 */}
           <View style={styles.summary}>
             <View style={[styles.summaryItem, { backgroundColor: "#e8f5e9" }]}>
               <Text>OK: {counts.OK}</Text>
@@ -322,6 +346,32 @@ ${testCasesXml}  </testsuite>
             </View>
           </View>
 
+          {/* テストケース単位の集計テーブル */}
+          <View style={[styles.table, { marginTop: 20, marginBottom: 40 }]}>
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              <Text style={[styles.tableCell, { width: "10%" }]}>No.</Text>
+              <Text style={[styles.tableCell, { width: "50%" }]}>テストケース</Text>
+              <Text style={[styles.tableCell, { width: "13%" }]}>OK</Text>
+              <Text style={[styles.tableCell, { width: "13%" }]}>NG</Text>
+              <Text style={[styles.tableCell, { width: "14%" }]}>N/A</Text>
+            </View>
+            {testCaseSummary.map((summary, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={[styles.tableCell, { width: "10%" }]}>{index + 1}</Text>
+                <View style={[styles.tableCell, { width: "50%" }]}>
+                  {convertMarkdownToStyledText(summary.name)}
+                </View>
+                <Text style={[styles.tableCell, { width: "13%" }]}>{summary.counts.OK}</Text>
+                <Text style={[styles.tableCell, { width: "13%" }]}>{summary.counts.NG}</Text>
+                <Text style={[styles.tableCell, { width: "14%" }]}>{summary.counts.NA}</Text>
+              </View>
+            ))}
+          </View>
+        </Page>
+
+        {/* テスト結果詳細ページ */}
+        <Page size="A4" orientation="landscape" style={styles.page}>
+          <Text style={{ fontSize: 18, marginBottom: 20 }}>テスト結果詳細</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
               <Text style={[styles.tableCell, styles.testCase]}>
