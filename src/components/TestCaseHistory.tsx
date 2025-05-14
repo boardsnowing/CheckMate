@@ -64,6 +64,7 @@ const TestCaseHistory: React.FC<TestCaseHistoryProps> = ({
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
   const [testSuiteName, setTestSuiteName] = useState<string>("");
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(true);
 
   useEffect(() => {
     loadTestResults();
@@ -539,6 +540,78 @@ ${testCasesXml}  </testsuite>
         <div className="bg-white p-4 rounded shadow">
           {selectedResult ? (
             <div>
+              <div className="mb-4 border rounded bg-gray-50">
+                <div className="flex justify-between items-center p-2 bg-gray-100 border-b">
+                  <button
+                    onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
+                    className="flex items-center space-x-2"
+                  >
+                    <span className="transform transition-transform duration-200">
+                      {isSummaryExpanded ? "▼" : "▶"}
+                    </span>
+                    <span className="font-medium">テストケース単位の集計</span>
+                  </button>
+                </div>
+                {isSummaryExpanded && (
+                  <div className="p-4">
+                    <table className="w-full border-collapse border border-gray-300">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border border-gray-300 px-4 py-2">No.</th>
+                          <th className="border border-gray-300 px-4 py-2">テストケース</th>
+                          <th className="border border-gray-300 px-4 py-2">OK</th>
+                          <th className="border border-gray-300 px-4 py-2">NG</th>
+                          <th className="border border-gray-300 px-4 py-2">N/A</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedResult.test_results.map((testResult, index) => {
+                          const testCase = testCases.find(
+                            (tc) => tc.id === testResult.test_case_id
+                          );
+                          const statusCounts = {
+                            OK: 0,
+                            NG: 0,
+                            NA: 0
+                          };
+                          
+                          testResult.results.forEach(step => {
+                            if (step.status === "OK") statusCounts.OK++;
+                            else if (step.status === "NG") statusCounts.NG++;
+                            else if (step.status === "N/A") statusCounts.NA++;
+                          });
+
+                          return (
+                            <tr key={testResult.test_case_id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                              <td className="border border-gray-300 px-4 py-2 text-center">{index + 1}</td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {testCase?.name || "不明なテストケース"}
+                                </ReactMarkdown>
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2 text-center">
+                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded">
+                                  {statusCounts.OK}
+                                </span>
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2 text-center">
+                                <span className="px-2 py-1 bg-red-100 text-red-800 rounded">
+                                  {statusCounts.NG}
+                                </span>
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2 text-center">
+                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
+                                  {statusCounts.NA}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
               <div className="mb-4">
                 <h3 className="text-lg font-semibold">
                   テスト結果詳細: {selectedResult.test_run_name}
