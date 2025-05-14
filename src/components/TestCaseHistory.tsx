@@ -220,7 +220,8 @@ ${testCasesXml}  </testsuite>
       borderRightColor: "#000",
       fontSize: 10,
     },
-    testCase: { width: "25%" },
+    testCase: { width: "20%" },
+    no: { width: "5%" },
     step: { width: "20%" },
     expected: { width: "25%" },
     result: { width: "10%" },
@@ -357,7 +358,13 @@ ${testCasesXml}  </testsuite>
             </View>
             {testCaseSummary.map((summary, index) => (
               <View key={index} style={styles.tableRow}>
-                <Text style={[styles.tableCell, { width: "10%" }]}>{index + 1}</Text>
+                <Text style={[
+                  styles.tableCell, 
+                  { width: "10%" },
+                  summary.counts.NG > 0 ? { backgroundColor: "#ffebee" } :
+                  summary.counts.NA > 0 && summary.counts.OK === 0 ? { backgroundColor: "#fff3e0" } :
+                  summary.counts.OK > 0 ? { backgroundColor: "#e8f5e9" } : {}
+                ]}>{index + 1}</Text>
                 <View style={[styles.tableCell, { width: "50%" }]}>
                   {convertMarkdownToStyledText(summary.name)}
                 </View>
@@ -374,15 +381,14 @@ ${testCasesXml}  </testsuite>
           <Text style={{ fontSize: 18, marginBottom: 20 }}>テスト結果詳細</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, styles.testCase]}>
-                テストケース
-              </Text>
+              <Text style={[styles.tableCell, styles.testCase]}>テストケース</Text>
+              <Text style={[styles.tableCell, styles.no]}>No</Text>
               <Text style={[styles.tableCell, styles.step]}>手順</Text>
               <Text style={[styles.tableCell, styles.expected]}>期待値</Text>
               <Text style={[styles.tableCell, styles.result]}>結果</Text>
               <Text style={[styles.tableCell, styles.comment]}>コメント</Text>
             </View>
-            {result.test_results.map((testResult) => {
+            {result.test_results.map((testResult, index) => {
               const testCase = testCases.find(
                 (tc) => tc.id === testResult.test_case_id
               );
@@ -401,6 +407,9 @@ ${testCasesXml}  </testsuite>
                   {stepIndex !== 0 && (
                     <Text style={[styles.tableCell, styles.testCase]}></Text>
                   )}
+                  <Text style={[styles.tableCell, styles.no]}>
+                    {`${index + 1}-${stepIndex + 1}`}
+                  </Text>
                   <View style={[styles.tableCell, styles.step]}>
                     {convertMarkdownToStyledText(result.step)}
                   </View>
@@ -689,13 +698,22 @@ ${testCasesXml}  </testsuite>
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border border-gray-300 px-4 py-2">
+                    <th className="border border-gray-300 px-4 py-2 w-1/4">
                       テストケース
                     </th>
-                    <th className="border border-gray-300 px-4 py-2">手順</th>
-                    <th className="border border-gray-300 px-4 py-2">期待値</th>
-                    <th className="border border-gray-300 px-4 py-2">結果</th>
-                    <th className="border border-gray-300 px-4 py-2">
+                    <th className="border border-gray-300 px-4 py-2 w-16">
+                      No
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 w-1/5">
+                      手順
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 w-1/4">
+                      期待値
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 w-20">
+                      結果
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 w-1/5">
                       コメント
                     </th>
                   </tr>
