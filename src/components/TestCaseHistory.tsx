@@ -64,6 +64,7 @@ const TestCaseHistory: React.FC<TestCaseHistoryProps> = ({
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
   const [testSuiteName, setTestSuiteName] = useState<string>("");
+  const [testSuitePrecondition, setTestSuitePrecondition] = useState<string>("");
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(true);
 
   useEffect(() => {
@@ -77,6 +78,18 @@ const TestCaseHistory: React.FC<TestCaseHistoryProps> = ({
         id: testSuiteId,
       });
       setTestSuiteName(testSuite.name);
+      if(testSuite.precondition) {
+        console.log(testSuite.precondition)
+          const unescapedPrecondition = testSuite.precondition
+            .replace(/\\n/g, "\n")
+            .replace(/\\t/g, "\t");
+          setTestSuitePrecondition(unescapedPrecondition)
+        console.log(testSuitePrecondition)
+      }
+      else {
+        setTestSuitePrecondition("")
+      }
+
     } catch (error) {
       console.error("テストスイート名の取得に失敗しました:", error);
     }
@@ -375,6 +388,16 @@ ${testCasesXml}  </testsuite>
             ))}
           </View>
         </Page>
+
+        {/* 前提条件ページ */}
+        {testSuitePrecondition && (
+          <Page size="A4" orientation="landscape" style={styles.page}>
+            <Text style={{ fontSize: 18, marginBottom: 20 }}>前提条件</Text>
+            <View style={{ padding: 10, backgroundColor: "#f9f9f9", borderRadius: 5 }}>
+              {convertMarkdownToStyledText(testSuitePrecondition)}
+            </View>
+          </Page>
+        )}
 
         {/* テスト結果詳細ページ */}
         <Page size="A4" orientation="landscape" style={styles.page}>
