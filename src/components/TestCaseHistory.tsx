@@ -507,6 +507,102 @@ ${testCasesXml}  </testsuite>
     }
   };
 
+  const handleExportCSV = async () => {
+    if (!selectedResult) return;
+
+    try {
+      const filePath = await save({
+        filters: [
+          {
+            name: "CSV",
+            extensions: ["csv"],
+          },
+        ],
+        defaultPath: `${selectedResult.test_run_name.replace(".json", "")}.csv`,
+      });
+
+      if (filePath) {
+        const csvContent = generateCSV(selectedResult);
+        const encoder = new TextEncoder();
+        // BOMを追加してExcelで正しく文字化けしないようにする
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const csvBytes = encoder.encode(csvContent);
+        const csvWithBom = new Uint8Array(bom.length + csvBytes.length);
+        csvWithBom.set(bom);
+        csvWithBom.set(csvBytes, bom.length);
+        await writeFile(filePath, csvWithBom);
+      }
+    } catch (error) {
+      console.error("CSVエクスポートに失敗しました:", error);
+      alert("CSVエクスポートに失敗しました");
+    }
+  };
+
+  const generateCSV = (result: TestResult): string => {
+    // Markdownの改行を適切に処理する関数
+    const processMarkdownForCSV = (text: string): string => {
+      if (!text) return "";
+      
+      // Markdownの改行（\n）をCSV内の改行として保持
+      // ダブルクォートをエスケープ
+      return text.replace(/"/g, '""');
+    };
+
+    // CSVの行を格納する配列
+    const rows: string[] = [];
+    
+    // 1. 試験名称
+    rows.push(`"試験名称","${processMarkdownForCSV(testSuiteName)}"`);
+    rows.push(""); // 空行
+    
+    // 2. テスト結果集計
+    const counts = calculateStatusCounts(result);
+    rows.push('"テスト結果集計"');
+    rows.push(`"OK","${counts.OK}"`);
+    rows.push(`"NG","${counts.NG}"`);
+    rows.push(`"N/A","${counts.NA}"`);
+    rows.push(`"未実施","${counts.Unmarked}"`);
+    rows.push(""); // 空行
+    
+    // 3. 前提条件
+    if (testSuitePrecondition) {
+      rows.push('"前提条件"');
+      rows.push(`"${processMarkdownForCSV(testSuitePrecondition)}"`);
+      rows.push(""); // 空行
+    }
+    
+    // 4. 試験のヘッダ
+    const headers = ["テストケース", "No", "手順", "期待値", "結果", "コメント"];
+    rows.push(headers.map(header => `"${header}"`).join(","));
+    
+    // 5. 試験の内容
+    result.test_results.forEach((testResult, testIndex) => {
+      const testCase = testCases.find(tc => tc.id === testResult.test_case_id);
+      const testCaseName = testCase?.name || "不明なテストケース";
+
+      testResult.results.forEach((stepResult, stepIndex) => {
+        const row = [
+          // テストケース（各テストケースの最初の行のみ）
+          stepIndex === 0 ? `"${processMarkdownForCSV(testCaseName)}"` : '""',
+          // No
+          `\'"${testIndex + 1}-${stepIndex + 1}"`,
+          // 手順
+          `"${processMarkdownForCSV(stepResult.step)}"`,
+          // 期待値
+          `"${processMarkdownForCSV(stepResult.expected)}"`,
+          // 結果
+          `"${stepResult.status}"`,
+          // コメント
+          `"${processMarkdownForCSV(stepResult.comment)}"`
+        ];
+        
+        rows.push(row.join(","));
+      });
+    });
+
+    return rows.join("\n");
+  };
+
   const handleDeleteResult = async (fileName: string) => {
     if (!window.confirm("このテスト結果を削除してもよろしいですか？")) {
       return;
@@ -599,6 +695,12 @@ ${testCasesXml}  </testsuite>
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   PDFエクスポート
+                </button>
+                <button
+                  onClick={handleExportCSV}
+                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  CSVエクスポート
                 </button>
                 <button
                   onClick={handleExportJUnit}
@@ -769,6 +871,9 @@ ${testCasesXml}  </testsuite>
                             </div>
                           </td>
                         )}
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                          {`${selectedResult.test_results.indexOf(testResult) + 1}-${stepIndex + 1}`}
+                        </td>
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="prose">
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
