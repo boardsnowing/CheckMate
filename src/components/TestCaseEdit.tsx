@@ -11,11 +11,11 @@ interface TestCaseEditProps {
   onSave: () => void;
 }
 
-const TestCaseEdit: React.FC<TestCaseEditProps> = ({
+function TestCaseEdit({
   testCases,
   onTestCaseChange,
   onSave,
-}) => {
+}: TestCaseEditProps) {
   // 最大のテストケースIDを取得する関数
   const getMaxTestCaseId = () => {
     return testCases.reduce((max, testCase) => {

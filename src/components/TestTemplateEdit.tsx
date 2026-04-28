@@ -17,10 +17,10 @@ interface TestTemplateEditProps {
   onCancel: () => void;
 }
 
-const TestTemplateEdit: React.FC<TestTemplateEditProps> = ({
+function TestTemplateEdit({
   onSave,
   onCancel,
-}) => {
+}: TestTemplateEditProps) {
   const { templateId } = useParams<{ templateId: string }>();
   //const [error, setError] = useState<string | null>(null);
   const [template, setTemplate] = useState<TestTemplate>({

@@ -10,7 +10,7 @@ interface TestTemplate {
   steps: TestStep[];
 }
 
-const TestTemplateList: React.FC = () => {
+function TestTemplateList() {
   const [templates, setTemplates] = useState<TestTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

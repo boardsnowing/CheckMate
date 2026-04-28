@@ -13,7 +13,7 @@ import TestCaseEdit from "./components/TestCaseEdit";
 import TestCaseResult from "./components/TestCaseResult";
 import TestCaseHistory from "./components/TestCaseHistory";
 
-const TestCaseList: React.FC = () => {
+function TestCaseList() {
   const navigate = useNavigate();
   const { suiteId } = useParams<{ suiteId: string }>();
   const [testCases, setTestCases] = useState<TestCase[]>([]);

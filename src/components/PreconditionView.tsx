@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -8,10 +8,10 @@ interface PreconditionViewProps {
   onEdit: () => void;
 }
 
-const PreconditionView: React.FC<PreconditionViewProps> = ({
+function PreconditionView({
   precondition,
   onEdit,
-}) => {
+}: PreconditionViewProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   if (!precondition || precondition.trim() === "") {

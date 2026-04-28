@@ -29,12 +29,12 @@ interface TestCaseResultData {
   results: TestStepResult[];
 }
 
-const TestCaseResult: React.FC<TestCaseResultProps> = ({
+function TestCaseResult({
   testCases,
   testSuiteId,
   testSuiteName,
   onTestResultChange,
-}) => {
+}: TestCaseResultProps) {
   // テスト結果の集計を計算する関数
   const calculateCurrentStatusCounts = () => {
     const counts = {

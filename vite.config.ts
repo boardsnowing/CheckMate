@@ -40,11 +40,21 @@ export default defineConfig({
     // Configure rollup options
     rollupOptions: {
       output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom"],
-          router: ["react-router-dom"],
-          ui: ["@headlessui/react"],
-          pdf: ["@react-pdf/renderer"],
+        manualChunks: (id) => {
+          if (id.includes("node_modules")) {
+            if (id.includes("react") || id.includes("react-dom")) {
+              return "react-vendor";
+            }
+            if (id.includes("react-router-dom")) {
+              return "router";
+            }
+            if (id.includes("@headlessui/react")) {
+              return "ui";
+            }
+            if (id.includes("@react-pdf/renderer")) {
+              return "pdf";
+            }
+          }
         },
       },
     },

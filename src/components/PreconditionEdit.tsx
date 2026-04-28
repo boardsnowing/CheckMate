@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 interface PreconditionEditProps {
   isOpen: boolean;
@@ -7,12 +7,12 @@ interface PreconditionEditProps {
   initialPrecondition?: string;
 }
 
-const PreconditionEdit: React.FC<PreconditionEditProps> = ({
+function PreconditionEdit({
   isOpen,
   onClose,
   onSave,
   initialPrecondition = "",
-}) => {
+}: PreconditionEditProps) {
   const [precondition, setPrecondition] = useState(initialPrecondition);
 
   useEffect(() => {

@@ -57,10 +57,10 @@ Font.register({
   ],
 });
 
-const TestCaseHistory: React.FC<TestCaseHistoryProps> = ({
+function TestCaseHistory({
   testCases,
   testSuiteId,
-}) => {
+}: TestCaseHistoryProps) {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
   const [testSuiteName, setTestSuiteName] = useState<string>("");
@@ -323,21 +323,6 @@ ${testCasesXml}  </testsuite>
             {/* <Text style={styles.coverSubTitleText}>{testSuiteId}</Text> */}
           </View>
 
-          {/* 押印欄 */}
-          <View style={styles.stampSection}>
-            <View style={styles.stampTable}>
-              <View style={styles.stampRow}>
-                <Text style={styles.stampHeader}>承認</Text>
-                <Text style={styles.stampHeader}>照査</Text>
-                <Text style={styles.stampHeader}>作成</Text>
-              </View>
-              <View style={styles.stampRow}>
-                <Text style={styles.stampCell}></Text>
-                <Text style={styles.stampCell}></Text>
-                <Text style={styles.stampCell}></Text>
-              </View>
-            </View>
-          </View>
         </Page>
 
         {/* 集計ページ */}

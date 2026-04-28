@@ -15,11 +15,11 @@ interface TestTemplateSelectModalProps {
   onSelect: (steps: TestStep[]) => void;
 }
 
-const TestTemplateSelectModal: React.FC<TestTemplateSelectModalProps> = ({
+function TestTemplateSelectModal({
   isOpen,
   onClose,
   onSelect,
-}) => {
+}: TestTemplateSelectModalProps) {
   const [templates, setTemplates] = useState<TestTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
