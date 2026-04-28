@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Step from "./common/Step";
 
 interface TestCaseResultProps {
   testCases: TestCase[];
@@ -400,105 +401,28 @@ function TestCaseResult({
               {/* テストケースのステップ */}
               {!collapsedCases.includes(caseIndex) &&
                 testCase.steps.map((step, stepIndex) => (
-                  <tr
+                  <Step
                     key={`${caseIndex}-step-${stepIndex}`}
-                    className={`border border-gray-300 ${
-                      caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
-                    }`}
-                  >
-                    <td className="border border-gray-300 px-2 py-1">
-                      <span>{`${caseIndex + 1}-${stepIndex + 1}`}</span>
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      <div className="prose">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {step.step}
-                        </ReactMarkdown>
-                      </div>
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      <div className="prose">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {step.expected}
-                        </ReactMarkdown>
-                      </div>
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      <div className="flex flex-col space-y-2">
-                        <div className="flex space-x-2">
-                          <button
-                            className={`px-2 py-1 ${
-                              step.result === "OK"
-                                ? "bg-green-500"
-                                : "bg-gray-400"
-                            } text-white rounded`}
-                            onClick={() => {
-                              const newSteps = [...testCase.steps];
-                              newSteps[stepIndex] = { ...step, result: "OK" };
-                              const caseResult = judgeTestCase(newSteps);
-                              onTestResultChange(caseIndex, stepIndex, "OK", caseResult);
-                            }}
-                          >
-                            OK
-                          </button>
-                          <button
-                            className={`px-2 py-1 ${
-                              step.result === "NG"
-                                ? "bg-red-500"
-                                : "bg-gray-400"
-                            } text-white rounded`}
-                            onClick={() => {
-                              const newSteps = [...testCase.steps];
-                              newSteps[stepIndex] = { ...step, result: "NG" };
-                              const caseResult = judgeTestCase(newSteps);
-                              onTestResultChange(caseIndex, stepIndex, "NG", caseResult);
-                            }}
-                          >
-                            NG
-                          </button>
-                          <button
-                            className={`px-2 py-1 ${
-                              step.result === "N/A"
-                                ? "bg-yellow-500"
-                                : "bg-gray-400"
-                            } text-white rounded`}
-                            onClick={() => {
-                              const newSteps = [...testCase.steps];
-                              newSteps[stepIndex] = { ...step, result: "N/A" };
-                              const caseResult = judgeTestCase(newSteps);
-                              onTestResultChange(caseIndex, stepIndex, "N/A", caseResult);
-                            }}
-                          >
-                            N/A
-                          </button>
-                        </div>
-                        <div className="space-y-2">
-                          {isPreviewMode ? (
-                            <div className="prose p-2 min-h-[100px]">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {comments[`${caseIndex}-${stepIndex}`] ||
-                                  "*コメントなし*"}
-                              </ReactMarkdown>
-                            </div>
-                          ) : (
-                            <textarea
-                              placeholder="コメント"
-                              className="px-2 py-1 border rounded w-[40ch] h-[6em] font-mono"
-                              value={
-                                comments[`${caseIndex}-${stepIndex}`] || ""
-                              }
-                              onChange={(e) =>
-                                setComments({
-                                  ...comments,
-                                  [`${caseIndex}-${stepIndex}`]: e.target.value,
-                                })
-                              }
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
+                    step={step}
+                    caseIndex={caseIndex}
+                    stepIndex={stepIndex}
+                    mode="result"
+                    isPreviewMode={isPreviewMode}
+                    alternatingColor={caseIndex % 2 === 0 ? "blue" : "green"}
+                    comment={comments[`${caseIndex}-${stepIndex}`] || ""}
+                    onResultChange={(result) => {
+                      const newSteps = [...testCase.steps];
+                      newSteps[stepIndex] = { ...step, result };
+                      const caseResult = judgeTestCase(newSteps);
+                      onTestResultChange(caseIndex, stepIndex, result, caseResult);
+                    }}
+                    onCommentChange={(comment) =>
+                      setComments({
+                        ...comments,
+                        [`${caseIndex}-${stepIndex}`]: comment,
+                      })
+                    }
+                  />
                 ))}
             </>
           ))}

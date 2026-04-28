@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import { useState, useEffect } from "react";
 import TestTemplateSelectModal from "./TestTemplateSelectModal";
 import TestCaseDuplicateModal from "./TestCaseDuplicateModal";
+import Step from "./common/Step";
 
 interface TestCaseEditProps {
   testCases: TestCase[];
@@ -385,77 +386,21 @@ function TestCaseEdit({
               {/* テストケースのステップ */}
               {!collapsedCases.includes(caseIndex) &&
                 testCase.steps.map((step, stepIndex) => (
-                  <tr
+                  <Step
                     key={`${caseIndex}-step-${stepIndex}`}
-                    className={`border border-gray-300 ${
-                      caseIndex % 2 === 0 ? "bg-blue-50" : "bg-green-50"
-                    }`}
+                    step={step}
+                    caseIndex={caseIndex}
+                    stepIndex={stepIndex}
+                    mode="edit"
+                    isPreviewMode={isPreviewMode}
+                    alternatingColor={caseIndex % 2 === 0 ? "blue" : "green"}
+                    onStepChange={(field, value) =>
+                      handleUpdateStep(caseIndex, stepIndex, field, value)
+                    }
                     onContextMenu={(e) =>
                       handleContextMenu(e, caseIndex, stepIndex)
                     }
-                  >
-                    <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
-                      <div className="flex justify-center">
-                        <span className="text-sm">{`${caseIndex + 1}-${
-                          stepIndex + 1
-                        }`}</span>
-                      </div>
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      <div className="relative">
-                        {isPreviewMode ? (
-                          <div className="markdown">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {step.step}
-                            </ReactMarkdown>
-                          </div>
-                        ) : (
-                          <div>
-                            <textarea
-                              placeholder="手順"
-                              value={step.step}
-                              onChange={(e) =>
-                                handleUpdateStep(
-                                  caseIndex,
-                                  stepIndex,
-                                  "step",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full p-1 border rounded h-[6em]"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      <div className="relative">
-                        {isPreviewMode ? (
-                          <div className="markdown">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {step.expected}
-                            </ReactMarkdown>
-                          </div>
-                        ) : (
-                          <div>
-                            <textarea
-                              placeholder="期待値"
-                              value={step.expected}
-                              onChange={(e) =>
-                                handleUpdateStep(
-                                  caseIndex,
-                                  stepIndex,
-                                  "expected",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full p-1 border rounded h-[6em]"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                  />
                 ))}
             </>
           ))}
