@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { TestCase } from "../types/TestCase";
+import Step from "./common/Step";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import {
@@ -834,66 +835,26 @@ ${testCasesXml}  </testsuite>
                       (tc) => tc.id === testResult.test_case_id
                     );
                     return testResult.results.map((result, stepIndex) => (
-                      <tr
+                      <Step
                         key={`${testResult.test_case_id}-${stepIndex}`}
-                        className={`${
-                          selectedResult.test_results.indexOf(testResult) %
-                            2 ===
-                          0
-                            ? "bg-blue-50"
-                            : "bg-green-50"
-                        }`}
-                      >
-                        {stepIndex === 0 && (
-                          <td
-                            className="border border-gray-300 px-4 py-2"
-                            rowSpan={testResult.results.length}
-                          >
-                            <div>
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {testCase?.name || "不明なテストケース"}
-                              </ReactMarkdown>
-                            </div>
-                          </td>
-                        )}
-                        <td className="border border-gray-300 px-4 py-2 text-center">
-                          {`${selectedResult.test_results.indexOf(testResult) + 1}-${stepIndex + 1}`}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          <div className="prose">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {result.step}
-                            </ReactMarkdown>
-                          </div>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          <div className="prose">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {result.expected}
-                            </ReactMarkdown>
-                          </div>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          <span
-                            className={`px-2 py-1 rounded text-white ${
-                              result.status === "OK"
-                                ? "bg-green-500"
-                                : result.status === "NG"
-                                ? "bg-red-500"
-                                : "bg-yellow-500"
-                            }`}
-                          >
-                            {result.status}
-                          </span>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          <div className="prose">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {result.comment}
-                            </ReactMarkdown>
-                          </div>
-                        </td>
-                      </tr>
+                        step={{
+                          step: result.step,
+                          expected: result.expected,
+                        }}
+                        caseIndex={selectedResult.test_results.indexOf(testResult)}
+                        stepIndex={stepIndex}
+                        mode="history"
+                        alternatingColor={
+                          selectedResult.test_results.indexOf(testResult) % 2 === 0
+                            ? "blue"
+                            : "green"
+                        }
+                        historyResult={result.status}
+                        historyComment={result.comment}
+                        showTestCaseName={stepIndex === 0}
+                        testCaseName={testCase?.name || "不明なテストケース"}
+                        totalStepsInCase={testResult.results.length}
+                      />
                     ));
                   })}
                 </tbody>
