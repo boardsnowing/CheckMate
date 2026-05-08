@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 実行結果を除外
+src-tauri/test_data/
+src-tauri/test_results/
