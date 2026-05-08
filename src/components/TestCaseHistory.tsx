@@ -232,22 +232,26 @@ ${testCasesXml}  </testsuite>
     // 1. 試験名称
     rows.push(`"試験名称","${processMarkdownForCSV(testSuiteName)}"`);
     rows.push(""); // 空行
+
+    // 2. 前提条件
+    if (testSuitePrecondition) {
+      rows.push(`"前提条件","${processMarkdownForCSV(testSuitePrecondition)}"`);
+      rows.push(""); // 空行
+    }
     
     // 2. テスト結果集計
     const counts = calculateStatusCounts(result);
-    rows.push('"テスト結果集計"');
-    rows.push(`"OK","${counts.OK}"`);
-    rows.push(`"NG","${counts.NG}"`);
-    rows.push(`"N/A","${counts.NA}"`);
-    rows.push(`"未実施","${counts.Unmarked}"`);
-    rows.push(""); // 空行
-    
-    // 3. 前提条件
-    if (testSuitePrecondition) {
-      rows.push('"前提条件"');
-      rows.push(`"${processMarkdownForCSV(testSuitePrecondition)}"`);
+    if (counts.OK > 0 || counts.NG > 0)
+    {
+      //1か所でもマークされていれば登録
+      rows.push('"テスト結果集計"');
+      rows.push(`"OK","${counts.OK}"`);
+      rows.push(`"NG","${counts.NG}"`);
+      rows.push(`"N/A","${counts.NA}"`);
+      rows.push(`"未実施","${counts.Unmarked}"`);
       rows.push(""); // 空行
     }
+    
     
     // 4. 試験のヘッダ
     const headers = ["テストケース", "No", "手順", "期待値", "結果", "コメント"];
@@ -261,7 +265,7 @@ ${testCasesXml}  </testsuite>
       testResult.results.forEach((stepResult, stepIndex) => {
         const row = [
           // テストケース（各テストケースの最初の行のみ）
-          stepIndex === 0 ? `"${processMarkdownForCSV(testCaseName)}"` : '""',
+          stepIndex === 0 ? `"'${processMarkdownForCSV(testCaseName)}"` : '""',
           // No
           `\'"${testIndex + 1}-${stepIndex + 1}"`,
           // 手順
