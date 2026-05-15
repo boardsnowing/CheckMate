@@ -1,9 +1,11 @@
-import { TestCase } from "../types/TestCase";
+import { TestCase, CommonProcedure } from "../types/TestCase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useState, useEffect } from "react";
 import TestTemplateSelectModal from "./TestTemplateSelectModal";
 import TestCaseDuplicateModal from "./TestCaseDuplicateModal";
+import CommonProcedureSelectModal from "./CommonProcedureSelectModal";
+import CommonProcedureManageModal from "./CommonProcedureManageModal";
 import Step from "./common/Step";
 
 interface TestCaseEditProps {
@@ -27,6 +29,7 @@ function TestCaseEdit({
 
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
+  const [commonProcedureGroupCollapsed, setCommonProcedureGroupCollapsed] = useState<{ [key: string]: boolean }>({});
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -43,6 +46,8 @@ function TestCaseEdit({
 
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+  const [isCommonProcedureSelectModalOpen, setIsCommonProcedureSelectModalOpen] = useState(false);
+  const [isCommonProcedureManageModalOpen, setIsCommonProcedureManageModalOpen] = useState(false);
   const [selectedStepIndex, setSelectedStepIndex] = useState<{
     caseIndex: number;
     stepIndex: number;
@@ -141,6 +146,43 @@ function TestCaseEdit({
     onTestCaseChange(updatedCases);
   };
 
+  // 共通手順挿入処理
+  const handleInsertCommonProcedure = (procedure: CommonProcedure) => {
+    if (selectedStepIndex) {
+      const updatedCases = [...testCases];
+      const { caseIndex, stepIndex } = selectedStepIndex;
+
+      // 共通手順のステップを追加（最初のステップにisGroupStart、最後にisGroupEnd）
+      const procedureSteps = procedure.steps.map((step, index) => ({
+        step: step.step,
+        expected: step.expected,
+        commonProcedureRef: {
+          procedureId: procedure.id,
+          procedureName: procedure.name,
+          isGroupStart: index === 0,
+          isGroupEnd: index === procedure.steps.length - 1,
+        },
+      }));
+
+      // 共通手順のステップを挿入位置の後に追加
+      updatedCases[caseIndex].steps.splice(
+        stepIndex + 1,
+        0,
+        ...procedureSteps
+      );
+
+      onTestCaseChange(updatedCases);
+    }
+  };
+
+  // 共通手順グループの折りたたみ状態をトグル
+  const toggleCommonProcedureGroup = (procedureId: string) => {
+    setCommonProcedureGroupCollapsed(prev => ({
+      ...prev,
+      [procedureId]: !prev[procedureId]
+    }));
+  };
+
   // コンテキストメニューを閉じる
   const handleClickOutside = () => {
     setContextMenu((prev) => ({ ...prev, visible: false }));
@@ -211,6 +253,18 @@ function TestCaseEdit({
           }
         }}
       />
+      <CommonProcedureSelectModal
+        isOpen={isCommonProcedureSelectModalOpen}
+        onClose={() => {
+          setIsCommonProcedureSelectModalOpen(false);
+          setSelectedStepIndex(null);
+        }}
+        onSelect={handleInsertCommonProcedure}
+      />
+      <CommonProcedureManageModal
+        isOpen={isCommonProcedureManageModalOpen}
+        onClose={() => setIsCommonProcedureManageModalOpen(false)}
+      />
       {/* コンテキストメニュー */}
       {contextMenu.visible && (
         <div
@@ -280,6 +334,19 @@ function TestCaseEdit({
               </button>
               <button
                 onClick={() => {
+                  setSelectedStepIndex({
+                    caseIndex: contextMenu.caseIndex,
+                    stepIndex: contextMenu.stepIndex!,
+                  });
+                  setIsCommonProcedureSelectModalOpen(true);
+                  setContextMenu((prev) => ({ ...prev, visible: false }));
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100"
+              >
+                共通手順を挿入
+              </button>
+              <button
+                onClick={() => {
                   deleteStep(contextMenu.caseIndex, contextMenu.stepIndex!);
                   setContextMenu((prev) => ({ ...prev, visible: false }));
                 }}
@@ -311,6 +378,12 @@ function TestCaseEdit({
             className="px-4 py-2 bg-green-500 text-white rounded"
           >
             テストケース追加
+          </button>
+          <button
+            onClick={() => setIsCommonProcedureManageModalOpen(true)}
+            className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+          >
+            共通手順管理
           </button>
           <div className="flex items-center gap-4">
             <div className="text-sm">
@@ -400,6 +473,8 @@ function TestCaseEdit({
                     onContextMenu={(e) =>
                       handleContextMenu(e, caseIndex, stepIndex)
                     }
+                    commonProcedureGroupCollapsed={commonProcedureGroupCollapsed}
+                    onToggleCommonProcedureGroup={toggleCommonProcedureGroup}
                   />
                 ))}
             </>

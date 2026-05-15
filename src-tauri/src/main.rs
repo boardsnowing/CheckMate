@@ -33,13 +33,35 @@ struct TestCase {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+struct CommonProcedureRef {
+    #[serde(rename = "procedureId")]
+    procedure_id: String,
+    #[serde(rename = "procedureName")]
+    procedure_name: String,
+    #[serde(rename = "isGroupStart")]
+    is_group_start: Option<bool>,
+    #[serde(rename = "isGroupEnd")]
+    is_group_end: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct TestStep {
     step: String,
     expected: String,
+    #[serde(rename = "commonProcedureRef")]
+    common_procedure_ref: Option<CommonProcedureRef>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct TestTemplate {
+    id: String,
+    name: String,
+    description: String,
+    steps: Vec<TestStep>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct CommonProcedure {
     id: String,
     name: String,
     description: String,
@@ -165,6 +187,96 @@ fn delete_test_template(template_id: String) -> Result<(), String> {
     fs::remove_file(&file_path).map_err(|e| format!("Failed to delete template: {}", e))?;
 
     println!("Successfully deleted template: {}", file_path.display());
+    Ok(())
+}
+
+// 共通手順関連のコマンド
+#[command]
+fn get_common_procedures() -> Result<Vec<CommonProcedure>, String> {
+    let dir_path = PathBuf::from("test_data/common_procedure");
+    if !dir_path.exists() {
+        fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
+        return Ok(Vec::new());
+    }
+
+    let mut procedures = Vec::new();
+    for entry in read_dir(&dir_path).map_err(|e| format!("Failed to read directory: {}", e))? {
+        let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
+        let path = entry.path();
+        if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
+            let file_content =
+                fs::read_to_string(&path).map_err(|e| format!("Failed to read file: {}", e))?;
+            let content = file_content.trim_start_matches('\u{feff}');
+
+            let procedure: CommonProcedure = serde_json::from_str(content)
+                .map_err(|e| format!("Failed to parse JSON in {}: {}", path.display(), e))?;
+            procedures.push(procedure);
+        }
+    }
+
+    // IDでソート
+    procedures.sort_by(|a, b| a.id.cmp(&b.id));
+    Ok(procedures)
+}
+
+#[command]
+fn get_common_procedure(procedure_id: String) -> Result<CommonProcedure, String> {
+    let file_path = PathBuf::from("test_data/common_procedure").join(format!("{}.json", procedure_id));
+    if !file_path.exists() {
+        return Err("共通手順が見つかりません".to_string());
+    }
+
+    let file_content = fs::read_to_string(&file_path)
+        .map_err(|e| format!("Failed to read file: {}", e))?;
+    let content = file_content.trim_start_matches('\u{feff}');
+
+    let procedure: CommonProcedure = serde_json::from_str(content)
+        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+    Ok(procedure)
+}
+
+#[command]
+fn save_common_procedure(procedure: CommonProcedure) -> Result<(), String> {
+    let dir_path = PathBuf::from("test_data/common_procedure");
+    fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
+
+    let file_path = dir_path.join(format!("{}.json", procedure.id));
+    let json = serde_json::to_string_pretty(&procedure)
+        .map_err(|e| format!("Failed to serialize procedure data: {}", e))?;
+    fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
+
+    println!("Successfully saved common procedure to: {}", file_path.display());
+    Ok(())
+}
+
+#[command]
+fn update_common_procedure(procedure: CommonProcedure) -> Result<(), String> {
+    let file_path = PathBuf::from("test_data/common_procedure").join(format!("{}.json", procedure.id));
+
+    if !file_path.exists() {
+        return Err("共通手順が見つかりません".to_string());
+    }
+
+    let json = serde_json::to_string_pretty(&procedure)
+        .map_err(|e| format!("Failed to serialize procedure data: {}", e))?;
+    fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
+
+    println!("Successfully updated common procedure: {}", file_path.display());
+    Ok(())
+}
+
+#[command]
+fn delete_common_procedure(procedure_id: String) -> Result<(), String> {
+    let file_path = PathBuf::from("test_data/common_procedure").join(format!("{}.json", procedure_id));
+
+    if !file_path.exists() {
+        return Err("共通手順が見つかりません".to_string());
+    }
+
+    fs::remove_file(&file_path).map_err(|e| format!("Failed to delete procedure: {}", e))?;
+
+    println!("Successfully deleted common procedure: {}", file_path.display());
     Ok(())
 }
 
@@ -462,6 +574,11 @@ fn main() {
             get_test_template,
             update_test_template,
             delete_test_template,
+            get_common_procedures,
+            get_common_procedure,
+            save_common_procedure,
+            update_common_procedure,
+            delete_common_procedure,
             load_test_result
         ])
         .run(tauri::generate_context!())

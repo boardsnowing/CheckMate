@@ -2,6 +2,12 @@ export interface TestStep {
   step: string;
   expected: string;
   result?: "OK" | "NG" | "N/A";
+  commonProcedureRef?: {     // 共通手順参照情報
+    procedureId: string;
+    procedureName: string;
+    isGroupStart?: boolean;   // グループ開始フラグ
+    isGroupEnd?: boolean;     // グループ終了フラグ
+  };
 }
 
 export interface TestCase {
@@ -28,4 +34,12 @@ export interface TestSuite {
   tools?: string;
   preparation?: string;
   test_cases: TestCase[];
+}
+
+// 共通手順の型定義
+export interface CommonProcedure {
+  id: string;
+  name: string;              // 名称（1行テキスト）
+  description: string;       // 説明（複数行テキスト）
+  steps: TestStep[];         // 複数の共通手順
 }

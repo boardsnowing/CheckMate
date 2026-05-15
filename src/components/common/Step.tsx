@@ -26,6 +26,10 @@ interface StepProps {
   showTestCaseName?: boolean;
   testCaseName?: string;
   totalStepsInCase?: number;
+
+  // 共通手順グループ表示用
+  commonProcedureGroupCollapsed?: { [key: string]: boolean };
+  onToggleCommonProcedureGroup?: (procedureId: string) => void;
 }
 
 function Step({
@@ -45,13 +49,28 @@ function Step({
   showTestCaseName = false,
   testCaseName = "",
   totalStepsInCase = 0,
+  commonProcedureGroupCollapsed = {},
+  onToggleCommonProcedureGroup,
 }: StepProps) {
+  // 共通手順グループの処理
+  const isCommonProcedureStep = !!step.commonProcedureRef;
+  const isGroupStart = step.commonProcedureRef?.isGroupStart;
+  const procedureId = step.commonProcedureRef?.procedureId;
+  const procedureName = step.commonProcedureRef?.procedureName;
+
   // スタイリングクラス名をuseMemoで最適化
-  const stepClassName = useMemo(() =>
-    `border border-gray-300 ${
+  const stepClassName = useMemo(() => {
+    let baseClass = `border border-gray-300 ${
       alternatingColor === 'blue' ? 'bg-blue-50' : 'bg-green-50'
-    }`, [alternatingColor]
-  );
+    }`;
+
+    // 共通手順のステップの場合は背景色を変更
+    if (isCommonProcedureStep) {
+      baseClass += ' bg-purple-25 border-l-2 border-purple-300';
+    }
+
+    return baseClass;
+  }, [alternatingColor, isCommonProcedureStep]);
 
   // ReactMarkdownコンテンツをuseMemoで最適化
   const stepMarkdown = useMemo(() => (
@@ -87,7 +106,36 @@ function Step({
   // ステップ番号の表示
   const stepNumber = `${caseIndex + 1}-${stepIndex + 1}`;
 
+  const isGroupCollapsed = procedureId ? commonProcedureGroupCollapsed[procedureId] : false;
+
+  // グループヘッダー行を表示するかどうか
+  const shouldShowGroupHeader = isGroupStart && mode === 'edit';
+
   return (
+    <>
+      {/* 共通手順グループヘッダー */}
+      {shouldShowGroupHeader && (
+        <tr className="bg-purple-100 border-l-4 border-purple-500">
+          <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
+            <button
+              onClick={() => procedureId && onToggleCommonProcedureGroup?.(procedureId)}
+              className="w-6 h-6 bg-purple-200 rounded hover:bg-purple-300 flex items-center justify-center"
+            >
+              {isGroupCollapsed ? "+" : "-"}
+            </button>
+          </td>
+          <td className="border border-gray-300 px-2 py-1" colSpan={2}>
+            <div className="flex items-center">
+              <span className="text-purple-700 font-semibold text-sm">
+                🔗 共通手順: {procedureName}
+              </span>
+            </div>
+          </td>
+        </tr>
+      )}
+
+      {/* グループが折りたたまれている場合はステップを非表示 */}
+      {(!isCommonProcedureStep || !isGroupCollapsed) && (
     <tr
       key={`${caseIndex}-step-${stepIndex}`}
       className={stepClassName}
@@ -230,6 +278,8 @@ function Step({
         </td>
       )}
     </tr>
+      )}
+    </>
   );
 }
 
