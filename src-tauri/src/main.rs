@@ -73,7 +73,12 @@ struct TestStepResult {
 struct TestSuiteData {
     id: String,
     name: String,
-    precondition: Option<String>,
+    precondition: Option<String>,  // レガシー対応
+    // 新規追加（すべてOptional）
+    purpose: Option<String>,
+    environment: Option<String>,
+    tools: Option<String>,
+    preparation: Option<String>,
     test_cases: Vec<TestCase>,
 }
 
@@ -409,6 +414,11 @@ fn create_test_suite(
         name: name.clone(),
         test_cases: Vec::new(),
         precondition: precondition.clone(),
+        // 新規追加フィールドは初期化時は空
+        purpose: None,
+        environment: None,
+        tools: None,
+        preparation: None,
     };
     let json = serde_json::to_string_pretty(&data)
         .map_err(|e| format!("Failed to serialize test suite data: {}", e))?;

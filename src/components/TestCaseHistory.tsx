@@ -2,11 +2,17 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { TestCase } from "../types/TestCase";
+import { TestCase, PreconditionDetails } from "../types/TestCase";
 import Step from "./common/Step";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { PDFExporter } from "./PDFExporter";
+import {
+  generateUnifiedPrecondition,
+  hasNewFormat,
+  extractNewFormat,
+  parseLegacyPrecondition
+} from "../utils/preconditionUtils";
 
 interface TestCaseHistoryProps {
   testCases: TestCase[];
@@ -45,6 +51,7 @@ function TestCaseHistory({
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
   const [testSuiteName, setTestSuiteName] = useState<string>("");
   const [testSuitePrecondition, setTestSuitePrecondition] = useState<string>("");
+  const [testSuitePreconditionDetails, setTestSuitePreconditionDetails] = useState<PreconditionDetails | undefined>(undefined);
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(true);
 
   useEffect(() => {
@@ -58,16 +65,30 @@ function TestCaseHistory({
         id: testSuiteId,
       });
       setTestSuiteName(testSuite.name);
+
       if(testSuite.precondition) {
         console.log(testSuite.precondition)
-          const unescapedPrecondition = testSuite.precondition
-            .replace(/\\n/g, "\n")
-            .replace(/\\t/g, "\t");
-          setTestSuitePrecondition(unescapedPrecondition)
+        const unescapedPrecondition = testSuite.precondition
+          .replace(/\\n/g, "\n")
+          .replace(/\\t/g, "\t");
+        setTestSuitePrecondition(unescapedPrecondition)
         console.log(testSuitePrecondition)
-      }
-      else {
+      } else {
         setTestSuitePrecondition("")
+      }
+
+      // 4項目データの読み込み
+      if (hasNewFormat(testSuite)) {
+        const newFormatDetails = extractNewFormat(testSuite);
+        setTestSuitePreconditionDetails(newFormatDetails);
+      } else if (testSuite.precondition) {
+        const unescapedPrecondition = testSuite.precondition
+          .replace(/\\n/g, "\n")
+          .replace(/\\t/g, "\t");
+        const parsedDetails = parseLegacyPrecondition(unescapedPrecondition);
+        setTestSuitePreconditionDetails(parsedDetails);
+      } else {
+        setTestSuitePreconditionDetails(undefined);
       }
 
     } catch (error) {
@@ -147,6 +168,7 @@ ${testCasesXml}  </testsuite>
         const pdfExporter = new PDFExporter(
           testSuiteName,
           testSuitePrecondition,
+          testSuitePreconditionDetails,
           testCases
         );
         const blob = await pdfExporter.exportToPDF(selectedResult);
@@ -234,8 +256,12 @@ ${testCasesXml}  </testsuite>
     rows.push(""); // 空行
 
     // 2. 前提条件
-    if (testSuitePrecondition) {
-      rows.push(`"前提条件","${processMarkdownForCSV(testSuitePrecondition)}"`);
+    const displayPrecondition = testSuitePreconditionDetails
+      ? generateUnifiedPrecondition(testSuitePreconditionDetails)
+      : testSuitePrecondition;
+
+    if (displayPrecondition) {
+      rows.push(`"前提条件","${processMarkdownForCSV(displayPrecondition)}"`);
       rows.push(""); // 空行
     }
     

@@ -6,9 +6,15 @@ import {
   requestPermission,
   sendNotification,
 } from "@tauri-apps/plugin-notification";
-import { TestCase, TestSuite } from "./types/TestCase";
+import { TestCase, TestSuite, PreconditionDetails } from "./types/TestCase";
 import PreconditionEdit from "./components/PreconditionEdit";
 import PreconditionView from "./components/PreconditionView";
+import {
+  parseLegacyPrecondition,
+  generateLegacyPrecondition,
+  hasNewFormat,
+  extractNewFormat
+} from "./utils/preconditionUtils";
 import TestCaseEdit from "./components/TestCaseEdit";
 import TestCaseResult from "./components/TestCaseResult";
 import TestCaseHistory from "./components/TestCaseHistory";
@@ -26,6 +32,7 @@ function TestCaseList() {
   );
   const [suiteName, setSuiteName] = useState<string>("");
   const [precondition, setPrecondition] = useState<string>("");
+  const [preconditionDetails, setPreconditionDetails] = useState<PreconditionDetails>({});
   const [isPreconditionEditOpen, setIsPreconditionEditOpen] = useState(false);
   const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(true);
 
@@ -87,6 +94,11 @@ function TestCaseList() {
           id: suiteId,
           name: suiteName,
           precondition: escapedPrecondition,
+          // 新形式の4項目データを追加
+          purpose: preconditionDetails.purpose || undefined,
+          environment: preconditionDetails.environment || undefined,
+          tools: preconditionDetails.tools || undefined,
+          preparation: preconditionDetails.preparation || undefined,
           test_cases: escapedTestCases,
         },
       });
@@ -114,10 +126,14 @@ function TestCaseList() {
     }
   };
 
-  // 前提条件の保存
-  const savePrecondition = async (newPrecondition: string) => {
+  // 前提条件の保存（新形式）
+  const savePreconditionDetails = async (newDetails: PreconditionDetails) => {
     try {
-      setPrecondition(newPrecondition);
+      setPreconditionDetails(newDetails);
+      // 下位互換用のprecondition文字列も更新
+      const legacyPrecondition = generateLegacyPrecondition(newDetails);
+      setPrecondition(legacyPrecondition.replace(/\\n/g, "\n").replace(/\\t/g, "\t"));
+
       setHasEditChanges(true);
       setAutoSaveStartTime(Date.now());
     } catch (error) {
@@ -146,9 +162,24 @@ function TestCaseList() {
                 .replace(/\\t/g, "\t"),
             })),
           }));
+
           setTestCases(unescapedTestCases);
           setPrecondition(unescapedPrecondition || "");
           setSuiteName(data.name);
+
+          // 新形式データの読み込み
+          if (hasNewFormat(data)) {
+            // 4項目データが存在する場合
+            const newFormatDetails = extractNewFormat(data);
+            setPreconditionDetails(newFormatDetails);
+          } else if (unescapedPrecondition) {
+            // レガシーデータを4項目に変換
+            const parsedDetails = parseLegacyPrecondition(unescapedPrecondition);
+            setPreconditionDetails(parsedDetails);
+          } else {
+            // 空の場合
+            setPreconditionDetails({});
+          }
         })
         .catch((error) => console.error("Error fetching test suite:", error));
     }
@@ -252,14 +283,16 @@ function TestCaseList() {
 
       <PreconditionView
         precondition={precondition}
+        preconditionDetails={preconditionDetails}
         onEdit={() => setIsPreconditionEditOpen(true)}
       />
 
       <PreconditionEdit
         isOpen={isPreconditionEditOpen}
         onClose={() => setIsPreconditionEditOpen(false)}
-        onSave={savePrecondition}
+        onSave={savePreconditionDetails}
         initialPrecondition={precondition}
+        initialDetails={preconditionDetails}
       />
       <div className="mb-4">
         <div className="flex justify-between items-center">

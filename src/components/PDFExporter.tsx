@@ -8,7 +8,8 @@ import {
   pdf,
   Font,
 } from "@react-pdf/renderer";
-import { TestCase } from "../types/TestCase";
+import { TestCase, PreconditionDetails } from "../types/TestCase";
+import { generateUnifiedPrecondition } from "../utils/preconditionUtils";
 
 interface TestResult {
   test_suite_id: string;
@@ -221,11 +222,13 @@ export const TestResultPDF = ({
   result,
   testSuiteName,
   testSuitePrecondition,
+  testSuitePreconditionDetails,
   testCases
 }: {
   result: TestResult;
   testSuiteName: string;
   testSuitePrecondition?: string;
+  testSuitePreconditionDetails?: PreconditionDetails;
   testCases: TestCase[];
 }) => {
   const counts = calculateStatusCounts(result);
@@ -310,14 +313,21 @@ export const TestResultPDF = ({
       </Page>
 
       {/* 前提条件ページ */}
-      {testSuitePrecondition && (
-        <Page size="A4" orientation="landscape" style={styles.page}>
-          <Text style={{ fontSize: 18, marginBottom: 20 }}>前提条件</Text>
-          <View style={{ padding: 10, backgroundColor: "#f9f9f9", borderRadius: 5 }}>
-            {convertMarkdownToStyledText(testSuitePrecondition)}
-          </View>
-        </Page>
-      )}
+      {(testSuitePreconditionDetails || testSuitePrecondition) && (() => {
+        // 4項目データがある場合は統合表示、ない場合はレガシー表示
+        const displayPrecondition = testSuitePreconditionDetails
+          ? generateUnifiedPrecondition(testSuitePreconditionDetails)
+          : testSuitePrecondition;
+
+        return displayPrecondition && (
+          <Page size="A4" orientation="landscape" style={styles.page}>
+            <Text style={{ fontSize: 18, marginBottom: 20 }}>前提条件</Text>
+            <View style={{ padding: 10, backgroundColor: "#f9f9f9", borderRadius: 5 }}>
+              {convertMarkdownToStyledText(displayPrecondition)}
+            </View>
+          </Page>
+        );
+      })()}
 
       {/* テスト結果詳細ページ */}
       <Page size="A4" orientation="landscape" style={styles.page}>
@@ -378,14 +388,16 @@ export const TestResultPDF = ({
 export const exportTestResultToPDF = async (
   result: TestResult,
   testSuiteName: string,
-  testSuitePrecondition: string,
-  testCases: TestCase[]
+  testCases: TestCase[],
+  testSuitePrecondition?: string,
+  testSuitePreconditionDetails?: PreconditionDetails
 ): Promise<Blob> => {
   const pdfDocument = (
     <TestResultPDF
       result={result}
       testSuiteName={testSuiteName}
       testSuitePrecondition={testSuitePrecondition}
+      testSuitePreconditionDetails={testSuitePreconditionDetails}
       testCases={testCases}
     />
   );
@@ -398,6 +410,7 @@ export class PDFExporter {
   constructor(
     private testSuiteName: string,
     private testSuitePrecondition: string,
+    private testSuitePreconditionDetails: PreconditionDetails | undefined,
     private testCases: TestCase[]
   ) {}
 
@@ -405,8 +418,9 @@ export class PDFExporter {
     return await exportTestResultToPDF(
       result,
       this.testSuiteName,
+      this.testCases,
       this.testSuitePrecondition,
-      this.testCases
+      this.testSuitePreconditionDetails
     );
   }
 }
