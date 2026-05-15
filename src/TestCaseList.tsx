@@ -36,6 +36,11 @@ function TestCaseList() {
   const [isPreconditionEditOpen, setIsPreconditionEditOpen] = useState(false);
   const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(true);
 
+  // 一番上に戻る機能
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // テストケースの編集を処理
   const handleTestCaseChange = (updatedCases: TestCase[]) => {
     setTestCases(updatedCases);
@@ -260,24 +265,91 @@ function TestCaseList() {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">
-          テストケース一覧（{suiteName}）
-        </h2>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">自動保存</span>
-          <button
-            onClick={() => setIsAutoSaveEnabled(!isAutoSaveEnabled)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              isAutoSaveEnabled ? 'bg-blue-500' : 'bg-gray-300'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isAutoSaveEnabled ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
+      {/* スティッキーヘッダー */}
+      <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 -m-4 mb-4 p-4">
+        <div className="flex justify-between items-center flex-wrap gap-2">
+          {/* 左側：戻るボタン、タイトル、一番上に戻るボタン */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                await saveTestCases();
+                navigate("/");
+              }}
+              className="px-3 py-1 bg-gray-300 rounded text-sm hover:bg-gray-400 transition-colors"
+            >
+              戻る
+            </button>
+            <h2 className="text-lg font-bold">
+              テストケース一覧（{suiteName}）
+            </h2>
+            <button
+              onClick={scrollToTop}
+              className="p-1 text-gray-600 hover:text-blue-600 transition-colors text-lg"
+              title="一番上に戻る"
+            >
+              ↑
+            </button>
+          </div>
+
+          {/* 右側：自動保存とモードボタン */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* 自動保存トグル */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">自動保存</span>
+              <button
+                onClick={() => setIsAutoSaveEnabled(!isAutoSaveEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  isAutoSaveEnabled ? 'bg-blue-500' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isAutoSaveEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* モード切替ボタン */}
+            <div className="flex space-x-1">
+              <button
+                onClick={() => setCurrentMode("edit")}
+                className={`px-3 py-1 rounded text-sm ${
+                  currentMode === "edit"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                編集
+              </button>
+              <button
+                onClick={() => setCurrentMode("test")}
+                className={`px-3 py-1 rounded text-sm ${
+                  currentMode === "test"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                テスト
+              </button>
+              <button
+                onClick={() => setCurrentMode("history")}
+                className={`px-3 py-1 rounded text-sm ${
+                  currentMode === "history"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                閲覧
+              </button>
+              <button
+                onClick={() => navigate(`/test-cases/${suiteId}/merge`)}
+                className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
+              >
+                マージ
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -294,57 +366,6 @@ function TestCaseList() {
         initialPrecondition={precondition}
         initialDetails={preconditionDetails}
       />
-      <div className="mb-4">
-        <div className="flex justify-between items-center">
-          <button
-            onClick={async () => {
-              await saveTestCases();
-              navigate("/");
-            }}
-            className="px-4 py-2 bg-gray-300 rounded"
-          >
-            戻る
-          </button>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentMode("edit")}
-              className={`px-4 py-2 rounded ${
-                currentMode === "edit"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              編集モード
-            </button>
-            <button
-              onClick={() => setCurrentMode("test")}
-              className={`px-4 py-2 rounded ${
-                currentMode === "test"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              テストモード
-            </button>
-            <button
-              onClick={() => setCurrentMode("history")}
-              className={`px-4 py-2 rounded ${
-                currentMode === "history"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              閲覧モード
-            </button>
-            <button
-              onClick={() => navigate(`/test-cases/${suiteId}/merge`)}
-              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
-            >
-              結果マージ
-            </button>
-          </div>
-        </div>
-      </div>
 
       {currentMode === "edit" ? (
         <TestCaseEdit
