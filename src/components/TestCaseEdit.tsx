@@ -30,6 +30,7 @@ function TestCaseEdit({
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [collapsedCases, setCollapsedCases] = useState<number[]>([]);
   const [commonProcedureGroupCollapsed, setCommonProcedureGroupCollapsed] = useState<{ [key: string]: boolean }>({});
+  // key: `${caseIndex}-${procedureId}` でテストケースごとに独立管理
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -117,19 +118,20 @@ function TestCaseEdit({
 
   // テストケースの特定の位置にステップを挿入
   const handleInsertStep = (caseIndex: number, stepIndex: number) => {
-    const updatedCases = [...testCases];
-    updatedCases[caseIndex].steps.splice(stepIndex + 1, 0, {
-      step: "",
-      expected: "",
-    });
+    const updatedCases = testCases.map((tc, i) =>
+      i === caseIndex
+        ? { ...tc, steps: [...tc.steps.slice(0, stepIndex + 1), { step: "", expected: "" }, ...tc.steps.slice(stepIndex + 1)] }
+        : tc
+    );
     onTestCaseChange(updatedCases);
   };
 
   // テストケースからステップを削除
   const deleteStep = (caseIndex: number, stepIndex: number) => {
-    const updatedCases = [...testCases];
-    updatedCases[caseIndex].steps = updatedCases[caseIndex].steps.filter(
-      (_, index) => index !== stepIndex
+    const updatedCases = testCases.map((tc, i) =>
+      i === caseIndex
+        ? { ...tc, steps: tc.steps.filter((_, idx) => idx !== stepIndex) }
+        : tc
     );
     onTestCaseChange(updatedCases);
   };
@@ -141,45 +143,47 @@ function TestCaseEdit({
     field: "step" | "expected",
     value: string
   ) => {
-    const updatedCases = [...testCases];
-    updatedCases[caseIndex].steps[stepIndex][field] = value;
+    const updatedCases = testCases.map((tc, i) => {
+      if (i !== caseIndex) return tc;
+      const steps = tc.steps.map((s, j) =>
+        j === stepIndex ? { ...s, [field]: value } : s
+      );
+      return { ...tc, steps };
+    });
     onTestCaseChange(updatedCases);
   };
 
-  // 共通手順挿入処理
   const handleInsertCommonProcedure = (procedure: CommonProcedure) => {
-    if (selectedStepIndex) {
-      const updatedCases = [...testCases];
-      const { caseIndex, stepIndex } = selectedStepIndex;
+    if (!selectedStepIndex) return;
+    const { caseIndex, stepIndex } = selectedStepIndex;
 
-      // 共通手順のステップを追加（最初のステップにisGroupStart、最後にisGroupEnd）
-      const procedureSteps = procedure.steps.map((step, index) => ({
-        step: step.step,
-        expected: step.expected,
-        commonProcedureRef: {
-          procedureId: procedure.id,
-          procedureName: procedure.name,
-          isGroupStart: index === 0,
-          isGroupEnd: index === procedure.steps.length - 1,
-        },
-      }));
+    const procedureSteps = procedure.steps.map((step) => ({
+      step: step.step,
+      expected: step.expected,
+      commonProcedureRef: {
+        procedureId: procedure.id,
+        procedureName: procedure.name,
+      },
+    }));
 
-      // 共通手順のステップを挿入位置の後に追加
-      updatedCases[caseIndex].steps.splice(
-        stepIndex + 1,
-        0,
-        ...procedureSteps
-      );
+    const updatedCases = testCases.map((tc, i) => {
+      if (i !== caseIndex) return tc;
+      const steps = [
+        ...tc.steps.slice(0, stepIndex + 1),
+        ...procedureSteps,
+        ...tc.steps.slice(stepIndex + 1),
+      ];
+      return { ...tc, steps };
+    });
 
-      onTestCaseChange(updatedCases);
-    }
+    onTestCaseChange(updatedCases);
   };
 
-  // 共通手順グループの折りたたみ状態をトグル
-  const toggleCommonProcedureGroup = (procedureId: string) => {
+  const toggleCommonProcedureGroup = (caseIndex: number, procedureId: string) => {
+    const key = `${caseIndex}-${procedureId}`;
     setCommonProcedureGroupCollapsed(prev => ({
       ...prev,
-      [procedureId]: !prev[procedureId]
+      [key]: !prev[key]
     }));
   };
 
@@ -239,16 +243,16 @@ function TestCaseEdit({
         }}
         onSelect={(templateSteps) => {
           if (selectedStepIndex) {
-            const updatedCases = [...testCases];
             const { caseIndex, stepIndex } = selectedStepIndex;
-
-            // テンプレートのステップを選択位置の後に挿入
-            updatedCases[caseIndex].steps.splice(
-              stepIndex + 1,
-              0,
-              ...templateSteps
-            );
-
+            const updatedCases = testCases.map((tc, i) => {
+              if (i !== caseIndex) return tc;
+              const steps = [
+                ...tc.steps.slice(0, stepIndex + 1),
+                ...templateSteps,
+                ...tc.steps.slice(stepIndex + 1),
+              ];
+              return { ...tc, steps };
+            });
             onTestCaseChange(updatedCases);
           }
         }}
@@ -447,9 +451,10 @@ function TestCaseEdit({
                       placeholder="テストケースの概要を入力"
                       value={testCase.name}
                       onChange={(e) => {
-                        const updatedCases = [...testCases];
-                        updatedCases[caseIndex].name = e.target.value;
-                        onTestCaseChange(updatedCases);
+                        const name = e.target.value;
+                        onTestCaseChange(testCases.map((tc, i) =>
+                          i === caseIndex ? { ...tc, name } : tc
+                        ));
                       }}
                       className="w-full p-1 border rounded h-[6em]"
                     />
@@ -462,6 +467,7 @@ function TestCaseEdit({
                   <Step
                     key={`${caseIndex}-step-${stepIndex}`}
                     step={step}
+                    prevStep={stepIndex > 0 ? testCase.steps[stepIndex - 1] : undefined}
                     caseIndex={caseIndex}
                     stepIndex={stepIndex}
                     mode="edit"

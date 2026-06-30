@@ -2,11 +2,9 @@ export interface TestStep {
   step: string;
   expected: string;
   result?: "OK" | "NG" | "N/A";
-  commonProcedureRef?: {     // 共通手順参照情報
+  commonProcedureRef?: {
     procedureId: string;
     procedureName: string;
-    isGroupStart?: boolean;   // グループ開始フラグ
-    isGroupEnd?: boolean;     // グループ終了フラグ
   };
 }
 

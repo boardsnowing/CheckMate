@@ -38,10 +38,6 @@ struct CommonProcedureRef {
     procedure_id: String,
     #[serde(rename = "procedureName")]
     procedure_name: String,
-    #[serde(rename = "isGroupStart")]
-    is_group_start: Option<bool>,
-    #[serde(rename = "isGroupEnd")]
-    is_group_end: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -242,6 +238,9 @@ fn save_common_procedure(procedure: CommonProcedure) -> Result<(), String> {
     fs::create_dir_all(&dir_path).map_err(|e| format!("Failed to create directory: {}", e))?;
 
     let file_path = dir_path.join(format!("{}.json", procedure.id));
+    if file_path.exists() {
+        return Err(format!("共通手順ID '{}' は既に存在します", procedure.id));
+    }
     let json = serde_json::to_string_pretty(&procedure)
         .map_err(|e| format!("Failed to serialize procedure data: {}", e))?;
     fs::write(&file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;

@@ -28,8 +28,9 @@ interface StepProps {
   totalStepsInCase?: number;
 
   // 共通手順グループ表示用
+  prevStep?: TestStep;
   commonProcedureGroupCollapsed?: { [key: string]: boolean };
-  onToggleCommonProcedureGroup?: (procedureId: string) => void;
+  onToggleCommonProcedureGroup?: (caseIndex: number, procedureId: string) => void;
 }
 
 function Step({
@@ -49,14 +50,16 @@ function Step({
   showTestCaseName = false,
   testCaseName = "",
   totalStepsInCase = 0,
+  prevStep,
   commonProcedureGroupCollapsed = {},
   onToggleCommonProcedureGroup,
 }: StepProps) {
   // 共通手順グループの処理
   const isCommonProcedureStep = !!step.commonProcedureRef;
-  const isGroupStart = step.commonProcedureRef?.isGroupStart;
   const procedureId = step.commonProcedureRef?.procedureId;
   const procedureName = step.commonProcedureRef?.procedureName;
+  // 直前のステップと procedureId が異なる場合にグループ先頭と判定（削除・並び替えに対して堅牢）
+  const isGroupStart = isCommonProcedureStep && prevStep?.commonProcedureRef?.procedureId !== procedureId;
 
   // スタイリングクラス名をuseMemoで最適化
   const stepClassName = useMemo(() => {
@@ -106,7 +109,7 @@ function Step({
   // ステップ番号の表示
   const stepNumber = `${caseIndex + 1}-${stepIndex + 1}`;
 
-  const isGroupCollapsed = procedureId ? commonProcedureGroupCollapsed[procedureId] : false;
+  const isGroupCollapsed = procedureId ? (commonProcedureGroupCollapsed[`${caseIndex}-${procedureId}`] ?? false) : false;
 
   // グループヘッダー行を表示するかどうか
   const shouldShowGroupHeader = isGroupStart && mode === 'edit';
@@ -118,7 +121,7 @@ function Step({
         <tr className="bg-purple-100 border-l-4 border-purple-500">
           <td className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
             <button
-              onClick={() => procedureId && onToggleCommonProcedureGroup?.(procedureId)}
+              onClick={() => procedureId && onToggleCommonProcedureGroup?.(caseIndex, procedureId)}
               className="w-6 h-6 bg-purple-200 rounded hover:bg-purple-300 flex items-center justify-center"
             >
               {isGroupCollapsed ? "+" : "-"}
