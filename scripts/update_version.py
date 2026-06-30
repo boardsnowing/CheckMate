@@ -131,9 +131,9 @@ def update_cargo_lock(version):
         with open(cargo_lock_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # checkmate パッケージの version を更新
+        # check-mate パッケージの version を更新
         updated_content = re.sub(
-            r'(name = "checkmate"[\s\S]*?)version = "[^"]*"',
+            r'(name = "check-mate"[\s\S]*?)version = "[^"]*"',
             rf'\1version = "{version}"',
             content
         )
@@ -158,7 +158,9 @@ def update_tauri_conf_json(version):
         with open(tauri_conf_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        if 'package' in data:
+        if 'version' in data:
+            data['version'] = version
+        elif 'package' in data:
             data['package']['version'] = version
 
         with open(tauri_conf_path, 'w', encoding='utf-8') as f:
