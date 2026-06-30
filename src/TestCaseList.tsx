@@ -342,12 +342,13 @@ function TestCaseList() {
               >
                 閲覧
               </button>
-              <button
+              {/* マージ機能は開発中機能のため一時無効化*/}
+              {/* <button
                 onClick={() => navigate(`/test-cases/${suiteId}/merge`)}
                 className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
               >
                 マージ
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
