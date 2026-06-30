@@ -7,6 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# AI usable files
+.claude/
+CLAUDE.md
+
 node_modules
 dist
 dist-ssr
@@ -26,3 +30,21 @@ dist-ssr
 # 実行結果を除外
 src-tauri/test_data/
 src-tauri/test_results/
+
+# Debug file
+conf.json
+/test_data/
+/test_result/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# OS generated file
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
