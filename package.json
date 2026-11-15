@@ -19,7 +19,7 @@
     "@tauri-apps/plugin-opener": "^2.5.3",
     "@types/marked": "^5.0.2",
     "eslint": "^9.39.4",
-    "marked": "^15.0.12",
+    "marked": "^18.2.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-markdown": "^10.0.0",
