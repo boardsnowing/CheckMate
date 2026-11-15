@@ -1,4 +1,7 @@
 # CheckMate
+
+**[プロジェクトページ](https://boardsnowing.github.io/CheckMate/)** · [ダウンロード](https://github.com/boardsnowing/CheckMate/releases/latest)
+
 ## 概要
 
 CheckMateはテストケースの作成・実行・管理を効率的に行うデスクトップアプリケーションです。  
