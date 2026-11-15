@@ -89,6 +89,79 @@ const english: Record<string, string> = {
   "テストステップを削除": "Delete Test Step",
   "テストケース追加": "Add Test Case",
   "共通手順管理": "Manage Shared Procedures",
+  "OpenCode (OpenAI互換)": "OpenCode (OpenAI-compatible)",
+  "AIで作成": "Create with AI",
+  "AIでテストケースを作成": "Create Test Cases with AI",
+  "テストスイート「{{name}}」をもとに生成します": "Generate based on test suite \"{{name}}\".",
+  "生成結果を確認・編集してください。適用するまでテストスイートは変更されません。":
+    "Review and edit the generated result. The suite will not change until you apply it.",
+  "生成されたテストケース（JSON）": "Generated Test Cases (JSON)",
+  "適用すると既存のテストケース一覧全体が置き換わります。変更されたケースの実行状態はクリアされます。":
+    "Applying replaces the entire test case list. Execution statuses for changed cases will be cleared.",
+  "設定に戻る": "Back to Settings",
+  "確認した内容を適用": "Apply Reviewed Changes",
+  "AIプロバイダー": "AI Provider",
+  "APIキー": "API Key",
+  "APIキー設定": "API Key Settings",
+  "AI APIキー設定": "AI API Key Settings",
+  "APIキー設定画面で保存済みのキーを使用します": "Use the key saved in API Key Settings.",
+  "APIキーは実行ディレクトリのconfig.jsonに平文で保存されます。初回保存時に同じ場所の.gitignoreへ追加します。config.jsonは暗号化されません。":
+    "API keys are stored in plain text in config.json in the app's working directory. On first save, config.json is added to the .gitignore in that directory. The file is not encrypted.",
+  "APIキーはconfig.jsonに平文保存され、生成時に選択したプロバイダーへ送信されます。送信先のデータ利用・保持条件は各プロバイダーの規約を確認してください。":
+    "API keys are stored in plain text in config.json and sent to the selected provider when generating. Check each provider's terms for data use and retention.",
+  "APIキー設定の読み込みに失敗しました: {{error}}":
+    "Failed to load API key settings: {{error}}",
+  "APIキーの保存に失敗しました: {{error}}":
+    "Failed to save API key: {{error}}",
+  "APIキーの削除に失敗しました: {{error}}":
+    "Failed to delete API key: {{error}}",
+  "APIキーを入力してください": "Enter an API key.",
+  "{{provider}}のAPIキーを保存しました": "Saved the {{provider}} API key.",
+  "{{provider}}のAPIキーを削除しました": "Deleted the {{provider}} API key.",
+  "{{provider}}のAPIキーを削除しますか？":
+    "Delete the {{provider}} API key?",
+  "APIキーの削除": "Delete API Key",
+  "設定済み": "Configured",
+  "未設定": "Not configured",
+  "新しいキーを入力すると保存済みのキーを置き換えます":
+    "Enter a new key to replace the saved key.",
+  "APIキーを入力": "Enter API key",
+  "保存中...": "Saving...",
+  "モデルID": "Model ID",
+  "例: 使用するモデルのID": "e.g. the model ID to use",
+  "APIエンドポイントURL（必要な場合）": "API Endpoint URL (if needed)",
+  "空欄の場合はプロバイダーの既定URLを使用":
+    "Leave blank to use the provider's default URL.",
+  "生成・編集の指示": "Generation / Edit Instructions",
+  "追加・変更したいテストケースを具体的に記述してください":
+    "Describe the test cases to add or change.",
+  "テストスイート名、前提条件、既存テストケース全件、および指示文を選択したAIプロバイダーへ送信することを理解しました。":
+    "I understand that the suite name, preconditions, all existing test cases, and instructions will be sent to the selected AI provider.",
+  "生成中...": "Generating...",
+  "AIに生成を依頼": "Generate with AI",
+  "閉じる": "Close",
+  "JSONの形式を確認してください": "Check the JSON syntax.",
+  "test_cases配列を含むJSONを入力してください":
+    "Enter JSON containing a test_cases array.",
+  "テストケースを1件以上含めてください":
+    "Include at least one test case.",
+  "{{index}}件目のテストケースの形式が正しくありません":
+    "Test case {{index}} has an invalid format.",
+  "{{index}}件目のテストケースに名前または手順がありません":
+    "Test case {{index}} must have a name and steps.",
+  "{{caseIndex}}件目の{{stepIndex}}件目の手順の形式が正しくありません":
+    "Step {{stepIndex}} in test case {{caseIndex}} has an invalid format.",
+  "{{index}}件目のテストケースに手順を1件以上含めてください":
+    "Test case {{index}} must contain at least one step.",
+  "テストケースIDは文字列で指定してください":
+    "Test case IDs must be strings.",
+  "テストケースIDが重複しています: {{id}}":
+    "Duplicate test case ID: {{id}}",
+  "必須項目とデータ送信の確認を入力してください":
+    "Complete all required fields and confirm data submission.",
+  "OpenCode互換APIのエンドポイントURLを入力してください":
+    "Enter the OpenCode-compatible API endpoint URL.",
+  "AI生成に失敗しました: {{error}}": "AI generation failed: {{error}}",
   "テストケース数: {{count}}": "Test Cases: {{count}}",
   "すべて展開": "Expand All",
   "すべて折りたたむ": "Collapse All",

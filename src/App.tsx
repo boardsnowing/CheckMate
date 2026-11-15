@@ -6,6 +6,7 @@ import TestCaseList from "./TestCaseList";
 import TestTemplateEdit from "./components/TestTemplateEdit";
 import TestTemplateList from "./components/TestTemplateList";
 import TestResultMerge from "./components/TestResultMerge";
+import ApiKeySettings from "./components/ApiKeySettings";
 import { setLanguage, t, useI18n } from "./i18n";
 //import "./App.css";
 
@@ -41,6 +42,9 @@ export default function App() {
 
           {/* テストケース画面 */}
           <Route path="/test-cases/:suiteId" element={<TestCaseList />} />
+
+          {/* AI APIキー設定画面 */}
+          <Route path="/settings/api-keys" element={<ApiKeySettings />} />
 
           {/* テンプレート一覧画面 */}
           <Route path="/templates" element={<TestTemplateList />} />

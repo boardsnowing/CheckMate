@@ -1,4 +1,4 @@
-import { TestCase, CommonProcedure } from "../types/TestCase";
+import { PreconditionDetails, TestCase, CommonProcedure } from "../types/TestCase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useState, useEffect } from "react";
@@ -6,19 +6,26 @@ import TestTemplateSelectModal from "./TestTemplateSelectModal";
 import TestCaseDuplicateModal from "./TestCaseDuplicateModal";
 import CommonProcedureSelectModal from "./CommonProcedureSelectModal";
 import CommonProcedureManageModal from "./CommonProcedureManageModal";
+import AiTestCaseAssistant from "./AiTestCaseAssistant";
 import Step from "./common/Step";
 import { t } from "../i18n";
 
 interface TestCaseEditProps {
   testCases: TestCase[];
+  suiteName: string;
+  preconditionDetails: PreconditionDetails;
   onTestCaseChange: (updatedCases: TestCase[]) => void;
   onSave: () => void;
+  onOpenApiKeySettings: () => Promise<void>;
 }
 
 function TestCaseEdit({
   testCases,
+  suiteName,
+  preconditionDetails,
   onTestCaseChange,
   onSave,
+  onOpenApiKeySettings,
 }: TestCaseEditProps) {
   // 最大のテストケースIDを取得する関数
   const getMaxTestCaseId = () => {
@@ -50,6 +57,7 @@ function TestCaseEdit({
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   const [isCommonProcedureSelectModalOpen, setIsCommonProcedureSelectModalOpen] = useState(false);
   const [isCommonProcedureManageModalOpen, setIsCommonProcedureManageModalOpen] = useState(false);
+  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const [selectedStepIndex, setSelectedStepIndex] = useState<{
     caseIndex: number;
     stepIndex: number;
@@ -219,6 +227,15 @@ function TestCaseEdit({
 
   return (
     <div>
+      <AiTestCaseAssistant
+        isOpen={isAiAssistantOpen}
+        suiteName={suiteName}
+        preconditionDetails={preconditionDetails}
+        testCases={testCases}
+        onClose={() => setIsAiAssistantOpen(false)}
+        onApply={onTestCaseChange}
+        onOpenApiKeySettings={onOpenApiKeySettings}
+      />
       <TestCaseDuplicateModal
         isOpen={isDuplicateModalOpen}
         onClose={() => setIsDuplicateModalOpen(false)}
@@ -389,6 +406,12 @@ function TestCaseEdit({
             className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
           >
             {t("共通手順管理")}
+          </button>
+          <button
+            onClick={() => setIsAiAssistantOpen(true)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          >
+            {t("AIで作成")}
           </button>
           <div className="flex items-center gap-4">
             <div className="text-sm">

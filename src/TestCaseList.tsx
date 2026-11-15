@@ -132,6 +132,13 @@ function TestCaseList() {
     }
   };
 
+  const openApiKeySettings = async () => {
+    await saveTestCases();
+    navigate("/settings/api-keys", {
+      state: { returnTo: `/test-cases/${suiteId}` },
+    });
+  };
+
   // 前提条件の保存（新形式）
   const savePreconditionDetails = async (newDetails: PreconditionDetails) => {
     try {
@@ -294,6 +301,12 @@ function TestCaseList() {
 
           {/* 右側：自動保存とモードボタン */}
           <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={openApiKeySettings}
+              className="px-3 py-1 rounded text-sm bg-gray-200 text-gray-700 hover:bg-gray-300"
+            >
+              {t("APIキー設定")}
+            </button>
             {/* 自動保存トグル */}
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">{t("自動保存")}</span>
@@ -372,8 +385,11 @@ function TestCaseList() {
       {currentMode === "edit" ? (
         <TestCaseEdit
           testCases={testCases}
+          suiteName={suiteName}
+          preconditionDetails={preconditionDetails}
           onTestCaseChange={handleTestCaseChange}
           onSave={saveTestCases}
+          onOpenApiKeySettings={openApiKeySettings}
         />
       ) : currentMode === "test" ? (
         <TestCaseResult

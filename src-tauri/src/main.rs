@@ -7,6 +7,8 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{command, AppHandle};
 
+mod ai_generation;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Config {
     user_name: String,
@@ -555,6 +557,10 @@ fn main() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
+            ai_generation::get_ai_api_key_status,
+            ai_generation::save_ai_api_key,
+            ai_generation::delete_ai_api_key,
+            ai_generation::generate_test_case_suggestions,
             save_test_result,
             save_test_suite,
             get_test_suites,
