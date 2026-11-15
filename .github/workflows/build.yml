@@ -8,7 +8,25 @@ permissions:
   contents: read
 
 jobs:
+  check-tauri-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test Tauri version checker
+        run: npm run test:tauri-versions
+
+      - name: Check Tauri package versions
+        run: npm run check:tauri-versions
+
   build:
+    needs: check-tauri-versions
     runs-on: windows-latest
     steps:
       - name: Check out repository
