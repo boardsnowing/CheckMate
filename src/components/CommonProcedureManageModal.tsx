@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { CommonProcedure } from "../types/TestCase";
+import { t } from "../i18n";
 
 interface CommonProcedureManageModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface LocalizedError {
+  key: string;
+  values?: Record<string, string | number>;
 }
 
 function CommonProcedureManageModal({
@@ -13,7 +19,7 @@ function CommonProcedureManageModal({
 }: CommonProcedureManageModalProps) {
   const [procedures, setProcedures] = useState<CommonProcedure[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LocalizedError | null>(null);
   const [editingProcedure, setEditingProcedure] = useState<CommonProcedure | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -29,7 +35,7 @@ function CommonProcedureManageModal({
       setProcedures(loadedProcedures);
       setError(null);
     } catch (err) {
-      setError("共通手順の読み込みに失敗しました");
+      setError({ key: "共通手順の読み込みに失敗しました" });
       console.error("Failed to load common procedures:", err);
     } finally {
       setLoading(false);
@@ -65,18 +71,24 @@ function CommonProcedureManageModal({
       setEditingProcedure(null);
       setIsCreating(false);
     } catch (err) {
-      setError(`共通手順の保存に失敗しました: ${err}`);
+      setError({
+        key: "共通手順の保存に失敗しました: {{error}}",
+        values: { error: String(err) },
+      });
     }
   };
 
   const handleDelete = async (procedureId: string) => {
-    if (!confirm("この共通手順を削除しますか？")) return;
+    if (!confirm(t("この共通手順を削除しますか？"))) return;
 
     try {
       await invoke("delete_common_procedure", { procedureId });
       await loadProcedures();
     } catch (err) {
-      setError(`共通手順の削除に失敗しました: ${err}`);
+      setError({
+        key: "共通手順の削除に失敗しました: {{error}}",
+        values: { error: String(err) },
+      });
     }
   };
 
@@ -117,7 +129,7 @@ function CommonProcedureManageModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">共通手順管理</h2>
+          <h2 className="text-xl font-bold">{t("共通手順管理")}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -128,7 +140,7 @@ function CommonProcedureManageModal({
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+            {t(error.key, error.values)}
           </div>
         )}
 
@@ -139,7 +151,7 @@ function CommonProcedureManageModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    名称
+                    {t("名称")}
                   </label>
                   <input
                     type="text"
@@ -151,12 +163,12 @@ function CommonProcedureManageModal({
                       })
                     }
                     className="w-full p-2 border border-gray-300 rounded text-sm"
-                    placeholder="共通手順の名称"
+                    placeholder={t("共通手順の名称")}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    説明
+                    {t("説明")}
                   </label>
                   <input
                     type="text"
@@ -168,7 +180,7 @@ function CommonProcedureManageModal({
                       })
                     }
                     className="w-full p-2 border border-gray-300 rounded text-sm"
-                    placeholder="共通手順の説明"
+                    placeholder={t("共通手順の説明")}
                   />
                 </div>
               </div>
@@ -176,13 +188,13 @@ function CommonProcedureManageModal({
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-xs font-medium text-gray-700">
-                    共通手順ステップ
+                    {t("共通手順ステップ")}
                   </label>
                   <button
                     onClick={addStep}
                     className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
                   >
-                    +追加
+                    {t("+追加")}
                   </button>
                 </div>
                 <div className="space-y-1">
@@ -195,7 +207,7 @@ function CommonProcedureManageModal({
                           value={step.step}
                           onChange={(e) => updateStep(index, "step", e.target.value)}
                           className="w-full p-1 border border-gray-300 rounded text-xs"
-                          placeholder="手順"
+                          placeholder={t("手順")}
                         />
                       </div>
                       <div className="flex-1">
@@ -204,14 +216,14 @@ function CommonProcedureManageModal({
                           value={step.expected}
                           onChange={(e) => updateStep(index, "expected", e.target.value)}
                           className="w-full p-1 border border-gray-300 rounded text-xs"
-                          placeholder="期待値"
+                          placeholder={t("期待値")}
                         />
                       </div>
                       <button
                         onClick={() => removeStep(index)}
                         className="px-1 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 w-6 h-6 flex items-center justify-center"
                         disabled={editingProcedure.steps.length <= 1}
-                        title="削除"
+                        title={t("削除")}
                       >
                         ×
                       </button>
@@ -225,14 +237,14 @@ function CommonProcedureManageModal({
                   onClick={handleCancel}
                   className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
                 >
-                  キャンセル
+                  {t("キャンセル")}
                 </button>
                 <button
                   onClick={handleSave}
                   className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                   disabled={!editingProcedure.name.trim()}
                 >
-                  保存
+                  {t("保存")}
                 </button>
               </div>
             </div>
@@ -245,16 +257,16 @@ function CommonProcedureManageModal({
                 onClick={handleCreateNew}
                 className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
               >
-                新しい共通手順を作成
+                {t("新しい共通手順を作成")}
               </button>
             </div>
 
             {loading ? (
-              <div className="text-center py-4">読み込み中...</div>
+              <div className="text-center py-4">{t("読み込み中...")}</div>
             ) : (
               <div className="space-y-1">
                 {procedures.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">共通手順がありません</p>
+                  <p className="text-gray-500 text-center py-4">{t("共通手順がありません")}</p>
                 ) : (
                   procedures.map((procedure) => (
                     <div
@@ -265,7 +277,9 @@ function CommonProcedureManageModal({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-sm truncate">{procedure.name}</h3>
-                            <span className="text-xs text-gray-500 whitespace-nowrap">{procedure.steps.length}ステップ</span>
+                            <span className="text-xs text-gray-500 whitespace-nowrap">
+                              {t("{{count}}ステップ", { count: procedure.steps.length })}
+                            </span>
                           </div>
                           {procedure.description && (
                             <p className="text-xs text-gray-600 truncate mt-1">{procedure.description}</p>
@@ -276,13 +290,13 @@ function CommonProcedureManageModal({
                             onClick={() => handleEdit(procedure)}
                             className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
                           >
-                            編集
+                            {t("編集")}
                           </button>
                           <button
                             onClick={() => handleDelete(procedure.id)}
                             className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
                           >
-                            削除
+                            {t("削除")}
                           </button>
                         </div>
                       </div>

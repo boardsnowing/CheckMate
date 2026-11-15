@@ -2,6 +2,7 @@ import { TestStep } from "../../types/TestCase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useMemo } from "react";
+import { t, useI18n } from "../../i18n";
 
 interface StepProps {
   step: TestStep;
@@ -54,6 +55,7 @@ function Step({
   commonProcedureGroupCollapsed = {},
   onToggleCommonProcedureGroup,
 }: StepProps) {
+  const { language } = useI18n();
   // 共通手順グループの処理
   const isCommonProcedureStep = !!step.commonProcedureRef;
   const procedureId = step.commonProcedureRef?.procedureId;
@@ -90,21 +92,21 @@ function Step({
 
   const commentMarkdown = useMemo(() => (
     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-      {comment || "*コメントなし*"}
+      {comment || t("*コメントなし*")}
     </ReactMarkdown>
-  ), [comment]);
+  ), [comment, language]);
 
   const historyCommentMarkdown = useMemo(() => (
     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-      {historyComment || "*コメントなし*"}
+      {historyComment || t("*コメントなし*")}
     </ReactMarkdown>
-  ), [historyComment]);
+  ), [historyComment, language]);
 
   const testCaseNameMarkdown = useMemo(() => (
     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-      {testCaseName || "不明なテストケース"}
+      {testCaseName || t("不明なテストケース")}
     </ReactMarkdown>
-  ), [testCaseName]);
+  ), [testCaseName, language]);
 
   // ステップ番号の表示
   const stepNumber = `${caseIndex + 1}-${stepIndex + 1}`;
@@ -130,7 +132,7 @@ function Step({
           <td className="border border-gray-300 px-2 py-1" colSpan={2}>
             <div className="flex items-center">
               <span className="text-purple-700 font-semibold text-sm">
-                🔗 共通手順: {procedureName}
+                🔗 {t("共通手順: {{name}}", { name: procedureName || "" })}
               </span>
             </div>
           </td>
@@ -173,7 +175,7 @@ function Step({
           ) : (
             <div>
               <textarea
-                placeholder="手順"
+                placeholder={t("手順")}
                 value={step.step}
                 onChange={(e) => onStepChange?.('step', e.target.value)}
                 className="w-full p-1 border rounded h-[6em]"
@@ -193,7 +195,7 @@ function Step({
           ) : (
             <div>
               <textarea
-                placeholder="期待値"
+                placeholder={t("期待値")}
                 value={step.expected}
                 onChange={(e) => onStepChange?.('expected', e.target.value)}
                 className="w-full p-1 border rounded h-[6em]"
@@ -247,7 +249,7 @@ function Step({
                   </div>
                 ) : (
                   <textarea
-                    placeholder="コメント"
+                    placeholder={t("コメント")}
                     className="px-2 py-1 border rounded w-[40ch] h-[6em] font-mono"
                     value={comment}
                     onChange={(e) => onCommentChange?.(e.target.value)}
@@ -266,7 +268,7 @@ function Step({
                   : "bg-yellow-500"
               }`}
             >
-              {historyResult}
+              {historyResult ? t(historyResult) : ""}
             </span>
           )}
         </td>

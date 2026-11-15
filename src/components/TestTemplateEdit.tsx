@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { TestStep } from "../types/TestCase";
+import { t } from "../i18n";
 
 interface TestTemplate {
   id: string;
@@ -115,7 +116,7 @@ function TestTemplateEdit({
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold">
-          {templateId ? "テンプレート編集" : "テンプレート作成"}
+          {templateId ? t("テンプレート編集") : t("テンプレート作成")}
         </h1>
         <div className="flex gap-2">
           <button
@@ -123,20 +124,20 @@ function TestTemplateEdit({
             className="px-4 py-2 bg-blue-500 text-white rounded"
             disabled={!template.name.trim() || !template.steps[0].step.trim()}
           >
-            保存
+            {t("保存")}
           </button>
           <button
             onClick={onCancel}
             className="px-4 py-2 bg-gray-500 text-white rounded"
           >
-            キャンセル
+            {t("キャンセル")}
           </button>
         </div>
       </div>
 
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          テンプレート名
+          {t("テンプレート名")}
         </label>
         {isPreviewMode ? (
           <div className="p-2 border rounded bg-gray-50">
@@ -150,14 +151,14 @@ function TestTemplateEdit({
             value={template.name}
             onChange={(e) => handleNameChange(e.target.value)}
             className="w-full p-2 border rounded"
-            placeholder="テンプレート名を入力"
+            placeholder={t("テンプレート名を入力")}
           />
         )}
       </div>
 
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          説明
+          {t("説明")}
         </label>
         {isPreviewMode ? (
           <div className="p-2 border rounded bg-gray-50">
@@ -170,7 +171,7 @@ function TestTemplateEdit({
             value={template.description}
             onChange={(e) => handleDescriptionChange(e.target.value)}
             className="w-full p-2 border rounded h-24"
-            placeholder="テンプレートの説明を入力"
+            placeholder={t("テンプレートの説明を入力")}
           />
         )}
       </div>
@@ -178,13 +179,13 @@ function TestTemplateEdit({
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">
-            テスト手順
+            {t("テスト手順")}
           </label>
           <button
             onClick={handleAddStep}
             className="px-3 py-1 bg-green-500 text-white rounded text-sm"
           >
-            手順を追加
+            {t("手順を追加")}
           </button>
         </div>
 
@@ -192,9 +193,9 @@ function TestTemplateEdit({
           <thead>
             <tr className="bg-gray-100">
               <th className="border border-gray-300 px-4 py-2 w-16">No.</th>
-              <th className="border border-gray-300 px-4 py-2">手順</th>
-              <th className="border border-gray-300 px-4 py-2">期待値</th>
-              <th className="border border-gray-300 px-4 py-2 w-32">操作</th>
+              <th className="border border-gray-300 px-4 py-2">{t("手順")}</th>
+              <th className="border border-gray-300 px-4 py-2">{t("期待値")}</th>
+              <th className="border border-gray-300 px-4 py-2 w-32">{t("操作")}</th>
             </tr>
           </thead>
           <tbody>
@@ -217,7 +218,7 @@ function TestTemplateEdit({
                         handleUpdateStep(index, "step", e.target.value)
                       }
                       className="w-full p-2 border rounded h-24"
-                      placeholder="手順を入力"
+                      placeholder={t("手順を入力")}
                     />
                   )}
                 </td>
@@ -235,7 +236,7 @@ function TestTemplateEdit({
                         handleUpdateStep(index, "expected", e.target.value)
                       }
                       className="w-full p-2 border rounded h-24"
-                      placeholder="期待値を入力"
+                      placeholder={t("期待値を入力")}
                     />
                   )}
                 </td>
@@ -245,14 +246,14 @@ function TestTemplateEdit({
                       onClick={() => handleInsertStep(index)}
                       className="px-2 py-1 bg-blue-500 text-white rounded text-sm"
                     >
-                      挿入
+                      {t("挿入")}
                     </button>
                     {template.steps.length > 1 && (
                       <button
                         onClick={() => handleDeleteStep(index)}
                         className="px-2 py-1 bg-red-500 text-white rounded text-sm"
                       >
-                        削除
+                        {t("削除")}
                       </button>
                     )}
                   </div>

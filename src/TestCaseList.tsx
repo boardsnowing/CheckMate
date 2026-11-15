@@ -15,6 +15,7 @@ import {
   hasNewFormat,
   extractNewFormat
 } from "./utils/preconditionUtils";
+import { t } from "./i18n";
 import TestCaseEdit from "./components/TestCaseEdit";
 import TestCaseResult from "./components/TestCaseResult";
 import TestCaseHistory from "./components/TestCaseHistory";
@@ -118,8 +119,8 @@ function TestCaseList() {
 
       if (permissionGranted) {
         await sendNotification({
-          title: "保存完了",
-          body: "テストスイートが正常に保存されました",
+          title: t("保存完了"),
+          body: t("テストスイートが正常に保存されました"),
         });
       }
 
@@ -277,15 +278,15 @@ function TestCaseList() {
               }}
               className="px-3 py-1 bg-gray-300 rounded text-sm hover:bg-gray-400 transition-colors"
             >
-              戻る
+              {t("戻る")}
             </button>
             <h2 className="text-lg font-bold">
-              テストケース一覧（{suiteName}）
+              {t("テストケース一覧（{{name}}）", { name: suiteName })}
             </h2>
             <button
               onClick={scrollToTop}
               className="p-1 text-gray-600 hover:text-blue-600 transition-colors text-lg"
-              title="一番上に戻る"
+              title={t("一番上に戻る")}
             >
               ↑
             </button>
@@ -295,7 +296,7 @@ function TestCaseList() {
           <div className="flex items-center gap-2 flex-wrap">
             {/* 自動保存トグル */}
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">自動保存</span>
+              <span className="text-sm text-gray-600">{t("自動保存")}</span>
               <button
                 onClick={() => setIsAutoSaveEnabled(!isAutoSaveEnabled)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
@@ -320,7 +321,7 @@ function TestCaseList() {
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                編集
+                {t("編集")}
               </button>
               <button
                 onClick={() => setCurrentMode("test")}
@@ -330,7 +331,7 @@ function TestCaseList() {
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                テスト
+                {t("テスト")}
               </button>
               <button
                 onClick={() => setCurrentMode("history")}
@@ -340,7 +341,7 @@ function TestCaseList() {
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                閲覧
+                {t("閲覧")}
               </button>
               {/* マージ機能は開発中機能のため一時無効化*/}
               {/* <button

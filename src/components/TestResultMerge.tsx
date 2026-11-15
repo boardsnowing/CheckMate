@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { t, useI18n } from "../i18n";
 
 interface TestStepResult {
   step: string;
@@ -35,6 +36,7 @@ interface ConflictItem {
 const TestResultMerge = () => {
   const { suiteId } = useParams<{ suiteId: string }>();
   const navigate = useNavigate();
+  const { language } = useI18n();
   const [file1, setFile1] = useState<TestResult | null>(null);
   const [file2, setFile2] = useState<TestResult | null>(null);
   const [conflicts, setConflicts] = useState<ConflictItem[]>([]);
@@ -81,7 +83,7 @@ const TestResultMerge = () => {
       }
     } catch (error) {
       console.error("Failed to load test result:", error);
-      alert("テスト結果の読み込みに失敗しました");
+      alert(t("テスト結果の読み込みに失敗しました"));
     }
   };
 
@@ -155,12 +157,12 @@ const TestResultMerge = () => {
     if (!file1 || !file2) return;
 
     if (!areAllConflictsResolved()) {
-      alert("すべての競合を解決してください");
+      alert(t("すべての競合を解決してください"));
       return;
     }
 
     if (!outputFileName.trim()) {
-      alert("出力ファイル名を入力してください");
+      alert(t("出力ファイル名を入力してください"));
       return;
     }
 
@@ -199,68 +201,68 @@ const TestResultMerge = () => {
         fileName: merged.test_run_name,
       });
 
-      alert("マージ結果を保存しました");
+      alert(t("マージ結果を保存しました"));
     } catch (error) {
       console.error("Failed to save merged result:", error);
-      alert("マージ結果の保存に失敗しました");
+      alert(t("マージ結果の保存に失敗しました"));
     }
   };
 
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">試験結果マージ</h2>
+        <h2 className="text-xl font-bold">{t("試験結果マージ")}</h2>
         <button
           onClick={() => navigate(`/test-cases/${suiteId}`)}
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
         >
-          戻る
+          {t("戻る")}
         </button>
       </div>
 
       {/* ファイル選択部分 */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="border p-4 rounded">
-          <h3 className="font-bold mb-2">ファイル1</h3>
+          <h3 className="font-bold mb-2">{t("ファイル1")}</h3>
           <select
             className="w-full p-2 border rounded mb-4"
             onChange={(e) => handleFileSelect(1, e.target.value)}
             value={file1?.test_run_name || ""}
           >
-            <option value="">選択してください</option>
+            <option value="">{t("選択してください")}</option>
             {previousResults.map((result) => (
               <option key={result.test_run_name} value={result.test_run_name}>
-                {result.test_run_name} ({result.executed_by} - {new Date(result.executed_at).toLocaleString()})
+                {result.test_run_name} ({result.executed_by} - {new Date(result.executed_at).toLocaleString(language === "en" ? "en-US" : "ja-JP")})
               </option>
             ))}
           </select>
           {file1 && (
             <div className="text-sm">
-              <p>実行者: {file1.executed_by}</p>
-              <p>実行日時: {new Date(file1.executed_at).toLocaleString()}</p>
+              <p>{t("実行者:")} {file1.executed_by}</p>
+              <p>{t("実行日時:")} {new Date(file1.executed_at).toLocaleString(language === "en" ? "en-US" : "ja-JP")}</p>
             </div>
           )}
         </div>
         <div className="border p-4 rounded">
-          <h3 className="font-bold mb-2">ファイル2</h3>
+          <h3 className="font-bold mb-2">{t("ファイル2")}</h3>
           <select
             className="w-full p-2 border rounded mb-4"
             onChange={(e) => handleFileSelect(2, e.target.value)}
             value={file2?.test_run_name || ""}
           >
-            <option value="">選択してください</option>
+            <option value="">{t("選択してください")}</option>
             {previousResults
               .filter((result) => result.test_run_name !== file1?.test_run_name)
               .map((result) => (
                 <option key={result.test_run_name} value={result.test_run_name}>
-                  {result.test_run_name} ({result.executed_by} - {new Date(result.executed_at).toLocaleString()})
+                  {result.test_run_name} ({result.executed_by} - {new Date(result.executed_at).toLocaleString(language === "en" ? "en-US" : "ja-JP")})
                 </option>
               ))}
           </select>
           {file2 && (
             <div className="text-sm">
-              <p>実行者: {file2.executed_by}</p>
-              <p>実行日時: {new Date(file2.executed_at).toLocaleString()}</p>
+              <p>{t("実行者:")} {file2.executed_by}</p>
+              <p>{t("実行日時:")} {new Date(file2.executed_at).toLocaleString(language === "en" ? "en-US" : "ja-JP")}</p>
             </div>
           )}
         </div>
@@ -269,7 +271,7 @@ const TestResultMerge = () => {
       {/* 競合表示部分 */}
       {conflicts.length > 0 && (
         <div className="mb-6">
-          <h3 className="font-bold mb-2">競合の解決</h3>
+          <h3 className="font-bold mb-2">{t("競合の解決")}</h3>
           <div className="border rounded">
             {conflicts.map((conflict) => (
               <div
@@ -278,13 +280,13 @@ const TestResultMerge = () => {
               >
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-bold mb-2">ファイル1の結果</h4>
+                    <h4 className="font-bold mb-2">{t("ファイル1の結果")}</h4>
                     <div className="prose">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {conflict.file1Result.step}
                       </ReactMarkdown>
-                      <p>結果: {conflict.file1Result.status}</p>
-                      <p>コメント: {conflict.file1Result.comment}</p>
+                      <p>{t("結果")}: {t(conflict.file1Result.status)}</p>
+                      <p>{t("コメント")}: {conflict.file1Result.comment}</p>
                     </div>
                     <button
                       className={`mt-2 px-4 py-2 rounded ${
@@ -301,17 +303,17 @@ const TestResultMerge = () => {
                         )
                       }
                     >
-                      この結果を使用
+                      {t("この結果を使用")}
                     </button>
                   </div>
                   <div>
-                    <h4 className="font-bold mb-2">ファイル2の結果</h4>
+                    <h4 className="font-bold mb-2">{t("ファイル2の結果")}</h4>
                     <div className="prose">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {conflict.file2Result.step}
                       </ReactMarkdown>
-                      <p>結果: {conflict.file2Result.status}</p>
-                      <p>コメント: {conflict.file2Result.comment}</p>
+                      <p>{t("結果")}: {t(conflict.file2Result.status)}</p>
+                      <p>{t("コメント")}: {conflict.file2Result.comment}</p>
                     </div>
                     <button
                       className={`mt-2 px-4 py-2 rounded ${
@@ -328,7 +330,7 @@ const TestResultMerge = () => {
                         )
                       }
                     >
-                      この結果を使用
+                      {t("この結果を使用")}
                     </button>
                   </div>
                 </div>
@@ -341,7 +343,7 @@ const TestResultMerge = () => {
       {/* 出力ファイル名入力 */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">
-          出力ファイル名：
+          {t("出力ファイル名：")}
         </label>
         <div className="mt-1 flex rounded-md shadow-sm">
           <input
@@ -349,7 +351,7 @@ const TestResultMerge = () => {
             value={outputFileName}
             onChange={(e) => setOutputFileName(e.target.value)}
             className="flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="保存するファイル名を入力"
+            placeholder={t("保存するファイル名を入力")}
           />
           <span className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
             .json
@@ -367,7 +369,7 @@ const TestResultMerge = () => {
         onClick={handleMerge}
         disabled={!areAllConflictsResolved() || !file1 || !file2 || !outputFileName.trim()}
       >
-        マージ実行
+        {t("マージ実行")}
       </button>
     </div>
   );
