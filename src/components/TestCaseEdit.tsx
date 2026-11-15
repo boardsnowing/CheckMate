@@ -7,6 +7,7 @@ import TestCaseDuplicateModal from "./TestCaseDuplicateModal";
 import CommonProcedureSelectModal from "./CommonProcedureSelectModal";
 import CommonProcedureManageModal from "./CommonProcedureManageModal";
 import Step from "./common/Step";
+import { t } from "../i18n";
 
 interface TestCaseEditProps {
   testCases: TestCase[];
@@ -105,7 +106,7 @@ function TestCaseEdit({
     const updatedCases = [...testCases];
     updatedCases.splice(caseIndex + 1, 0, {
       id: `tc-${getMaxTestCaseId() + 1}`,
-      name: "新しいテストケース",
+      name: t("新しいテストケース"),
       steps: [
         {
           step: "",
@@ -287,7 +288,7 @@ function TestCaseEdit({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
               >
-                テストケースを挿入
+                {t("テストケースを挿入")}
               </button>
               <button
                 onClick={() => {
@@ -297,7 +298,7 @@ function TestCaseEdit({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
               >
-                テストケースを複製
+                {t("テストケースを複製")}
               </button>
               <button
                 onClick={() => {
@@ -306,7 +307,7 @@ function TestCaseEdit({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
               >
-                テストケースを削除
+                {t("テストケースを削除")}
               </button>
             </>
           ) : (
@@ -321,7 +322,7 @@ function TestCaseEdit({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
               >
-                テストステップを挿入
+                {t("テストステップを挿入")}
               </button>
               <button
                 onClick={() => {
@@ -334,7 +335,7 @@ function TestCaseEdit({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
               >
-                テンプレートを挿入
+                {t("テンプレートを挿入")}
               </button>
               <button
                 onClick={() => {
@@ -347,7 +348,7 @@ function TestCaseEdit({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
               >
-                共通手順を挿入
+                {t("共通手順を挿入")}
               </button>
               <button
                 onClick={() => {
@@ -356,7 +357,7 @@ function TestCaseEdit({
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
               >
-                テストステップを削除
+                {t("テストステップを削除")}
               </button>
             </>
           )}
@@ -369,7 +370,7 @@ function TestCaseEdit({
             onClick={() => {
               const newTestCase: TestCase = {
                 id: `tc-${getMaxTestCaseId() + 1}`,
-                name: "新しいテストケース",
+                name: t("新しいテストケース"),
                 steps: [
                   {
                     step: "",
@@ -381,17 +382,17 @@ function TestCaseEdit({
             }}
             className="px-4 py-2 bg-green-500 text-white rounded"
           >
-            テストケース追加
+            {t("テストケース追加")}
           </button>
           <button
             onClick={() => setIsCommonProcedureManageModalOpen(true)}
             className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
           >
-            共通手順管理
+            {t("共通手順管理")}
           </button>
           <div className="flex items-center gap-4">
             <div className="text-sm">
-              テストケース数:{" "}
+              {t("テストケース数: {{count}}", { count: testCases.length })}{" "}
               <span className="font-bold">{testCases.length}</span>
             </div>
             <button
@@ -399,12 +400,12 @@ function TestCaseEdit({
               className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
             >
               {collapsedCases.length === testCases.length
-                ? "すべて展開"
-                : "すべて折りたたむ"}
+                ? t("すべて展開")
+                : t("すべて折りたたむ")}
             </button>
           </div>
         </div>
-        <div className="text-sm text-gray-500">Alt + P でプレビュー切替</div>
+        <div className="text-sm text-gray-500">{t("Alt + P でプレビュー切替")}</div>
       </div>
 
       <table className="w-full border-collapse border border-gray-300">
@@ -413,8 +414,8 @@ function TestCaseEdit({
             <th className="border border-gray-300 px-2 py-1 w-24 min-w-[6rem] max-w-[6rem]">
               No
             </th>
-            <th className="border border-gray-300 px-2 py-1">手順</th>
-            <th className="border border-gray-300 px-2 py-1">期待値</th>
+            <th className="border border-gray-300 px-2 py-1">{t("手順")}</th>
+            <th className="border border-gray-300 px-2 py-1">{t("期待値")}</th>
           </tr>
         </thead>
         <tbody>
@@ -448,7 +449,7 @@ function TestCaseEdit({
                     </div>
                   ) : (
                     <textarea
-                      placeholder="テストケースの概要を入力"
+                      placeholder={t("テストケースの概要を入力")}
                       value={testCase.name}
                       onChange={(e) => {
                         const name = e.target.value;

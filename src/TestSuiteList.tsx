@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { TestSuite } from "./types/TestCase";
+import { t } from "./i18n";
 
 export default function TestSuiteList() {
   const [testSuites, setTestSuites] = useState<TestSuite[]>([]);
@@ -75,7 +76,9 @@ export default function TestSuiteList() {
       (suite) => suite.id === newtestSuiteId
     );
     if (existingSuite) {
-      alert(`テスト管理番号「${newtestSuiteId}」は既に使用されています。`);
+      alert(t("テスト管理番号「{{id}}」は既に使用されています。", {
+        id: newtestSuiteId,
+      }));
       return;
     }
 
@@ -125,9 +128,12 @@ export default function TestSuiteList() {
 
   const deleteTestSuite = async (suite: TestSuite) => {
     const confirmed = await confirm(
-      `テストスイート「${suite.name}」を削除してもよろしいですか？\n\n関連するすべてのテストケースとテスト結果も削除されます。`,
+      t(
+        "テストスイート「{{name}}」を削除してもよろしいですか？\n\n関連するすべてのテストケースとテスト結果も削除されます。",
+        { name: suite.name },
+      ),
       {
-        title: "テストスイートの削除",
+        title: t("テストスイートの削除"),
       }
     );
 
@@ -145,7 +151,7 @@ export default function TestSuiteList() {
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold">テストスイート管理</h1>
+          <h1 className="text-xl font-bold">{t("テストスイート管理")}</h1>
           <span className="text-sm text-gray-500">v{version}</span>
         </div>
         <div className="flex items-center gap-4">
@@ -153,10 +159,10 @@ export default function TestSuiteList() {
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
             onClick={() => navigate("/templates")}
           >
-            テンプレート管理
+            {t("テンプレート管理")}
           </button>
           <div className="flex items-center gap-2">
-            <span>ユーザー名: {userName}</span>
+            <span>{t("ユーザー名: {{name}}", { name: userName })}</span>
             <button
               className="bg-gray-500 text-white px-2 py-1 rounded"
               onClick={() => {
@@ -164,7 +170,7 @@ export default function TestSuiteList() {
                 setIsUserNameDialogOpen(true);
               }}
             >
-              変更
+              {t("変更")}
             </button>
           </div>
         </div>
@@ -174,7 +180,7 @@ export default function TestSuiteList() {
       <div className="relative mb-4 max-w-2xl mx-auto">
         <input
           type="text"
-          placeholder="テストスイートを検索..."
+          placeholder={t("テストスイートを検索...")}
           className="border border-gray-300 rounded-lg pl-8 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -187,13 +193,13 @@ export default function TestSuiteList() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                テスト管理番号
+                {t("テスト管理番号")}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                テストスイート名
+                {t("テストスイート名")}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                操作
+                {t("操作")}
               </th>
             </tr>
           </thead>
@@ -218,7 +224,7 @@ export default function TestSuiteList() {
                         openRenameDialog(suite);
                       }}
                     >
-                      名前変更
+                      {t("名前変更")}
                     </button>
                     <button
                       className="inline-flex items-center px-3 py-1.5 border border-red-500 text-red-500 rounded-md hover:bg-red-50 text-sm transition-colors duration-150"
@@ -227,7 +233,7 @@ export default function TestSuiteList() {
                         deleteTestSuite(suite);
                       }}
                     >
-                      削除
+                      {t("削除")}
                     </button>
                   </td>
                 </tr>
@@ -241,20 +247,20 @@ export default function TestSuiteList() {
         className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 mt-4 max-w-2xl mx-auto rounded-lg shadow-sm transition-colors duration-150 flex items-center justify-center"
         onClick={() => setIsAddDialogOpen(true)}
       >
-        <span>テストスイートを追加</span>
+        <span>{t("テストスイートを追加")}</span>
       </button>
 
       {/* 追加ダイアログ */}
       {isAddDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-4 rounded-lg">
-            <h2 className="text-lg font-bold mb-4">新しいテストスイート</h2>
+            <h2 className="text-lg font-bold mb-4">{t("新しいテストスイート")}</h2>
             <div className="space-y-4">
               <input
                 type="text"
                 value={newtestSuiteId}
                 onChange={(e) => setNewtestSuiteId(e.target.value)}
-                placeholder="テスト管理番号"
+                placeholder={t("テスト管理番号")}
                 className="border p-2 w-full"
                 required
               />
@@ -262,7 +268,7 @@ export default function TestSuiteList() {
                 type="text"
                 value={newSuiteName}
                 onChange={(e) => setNewSuiteName(e.target.value)}
-                placeholder="テストスイート名"
+                placeholder={t("テストスイート名")}
                 className="border p-2 w-full"
                 required
               />
@@ -275,14 +281,14 @@ export default function TestSuiteList() {
                   setNewSuiteName("");
                 }}
               >
-                キャンセル
+                {t("キャンセル")}
               </button>
               <button
                 className="bg-blue-500 text-white p-2"
                 onClick={addTestSuite}
                 disabled={!newSuiteName.trim() || !newtestSuiteId.trim()}
               >
-                追加
+                {t("追加")}
               </button>
             </div>
           </div>
@@ -294,18 +300,18 @@ export default function TestSuiteList() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-4 rounded-lg">
             <h2 className="text-lg font-bold mb-4">
-              {userName ? "ユーザー名の変更" : "ユーザー名の設定"}
+              {userName ? t("ユーザー名の変更") : t("ユーザー名の設定")}
             </h2>
             <p className="text-sm text-gray-600 mb-4">
               {userName
-                ? "新しいユーザー名を入力してください"
-                : "テスト実行者の名前を設定してください"}
+                ? t("新しいユーザー名を入力してください")
+                : t("テスト実行者の名前を設定してください")}
             </p>
             <input
               type="text"
               value={newUserName}
               onChange={(e) => setNewUserName(e.target.value)}
-              placeholder="新しいユーザー名"
+              placeholder={t("新しいユーザー名")}
               className="border p-2 w-full mb-4"
             />
             <div className="flex justify-end gap-2">
@@ -316,13 +322,13 @@ export default function TestSuiteList() {
                   setNewUserName("");
                 }}
               >
-                キャンセル
+                {t("キャンセル")}
               </button>
               <button
                 className="bg-blue-500 text-white p-2"
                 onClick={updateUserName}
               >
-                変更
+                {t("変更")}
               </button>
             </div>
           </div>
@@ -333,12 +339,12 @@ export default function TestSuiteList() {
       {isRenameDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-4 rounded-lg">
-            <h2 className="text-lg font-bold mb-4">テストスイート名の変更</h2>
+            <h2 className="text-lg font-bold mb-4">{t("テストスイート名の変更")}</h2>
             <input
               type="text"
               value={renameSuiteName}
               onChange={(e) => setRenameSuiteName(e.target.value)}
-              placeholder="新しいテストスイート名"
+              placeholder={t("新しいテストスイート名")}
               className="border p-2 w-full mb-4"
               required
             />
@@ -350,14 +356,14 @@ export default function TestSuiteList() {
                   setSelectedSuite(null);
                 }}
               >
-                キャンセル
+                {t("キャンセル")}
               </button>
               <button
                 className="bg-blue-500 text-white p-2"
                 onClick={renameTestSuite}
                 disabled={!renameSuiteName.trim()}
               >
-                変更
+                {t("変更")}
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { TestStep } from "../types/TestCase";
+import { t } from "../i18n";
 
 interface TestTemplate {
   id: string;
@@ -49,7 +50,7 @@ function TestTemplateSelectModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">テンプレートを選択</h2>
+          <h2 className="text-xl font-bold">{t("テンプレートを選択")}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -59,13 +60,13 @@ function TestTemplateSelectModal({
         </div>
 
         {loading ? (
-          <div className="text-center py-4">読み込み中...</div>
+          <div className="text-center py-4">{t("読み込み中...")}</div>
         ) : error ? (
-          <div className="text-red-500 py-4">{error}</div>
+          <div className="text-red-500 py-4">{t(error)}</div>
         ) : (
           <div className="overflow-y-auto flex-1">
             {templates.length === 0 ? (
-              <p className="text-gray-500">テンプレートがありません</p>
+              <p className="text-gray-500">{t("テンプレートがありません")}</p>
             ) : (
               <div className="grid gap-4">
                 {templates.map((template) => (
@@ -82,7 +83,7 @@ function TestTemplateSelectModal({
                       <p className="text-gray-600 mb-2">{template.description}</p>
                     )}
                     <div className="text-sm text-gray-500">
-                      ステップ数: {template.steps.length}
+                      {t("ステップ数: {{count}}", { count: template.steps.length })}
                     </div>
                   </div>
                 ))}

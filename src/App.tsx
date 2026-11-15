@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import TestSuiteList from "./TestSuiteList";
@@ -5,12 +6,35 @@ import TestCaseList from "./TestCaseList";
 import TestTemplateEdit from "./components/TestTemplateEdit";
 import TestTemplateList from "./components/TestTemplateList";
 import TestResultMerge from "./components/TestResultMerge";
+import { setLanguage, t, useI18n } from "./i18n";
 //import "./App.css";
 
 export default function App() {
+  const { language } = useI18n();
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   return (
     <Router>
       <div className="min-h-screen p-4 bg-gray-100">
+        <div className="flex justify-end mb-3">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            {t("表示言語")}
+            <select
+              aria-label={t("表示言語")}
+              className="border border-gray-300 rounded px-2 py-1 bg-white"
+              value={language}
+              onChange={(event) =>
+                setLanguage(event.target.value === "en" ? "en" : "ja")
+              }
+            >
+              <option value="ja">日本語</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+        </div>
         <Routes>
           {/* テストスイート画面（初期ページ） */}
           <Route path="/" element={<TestSuiteList />} />

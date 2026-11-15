@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Step from "./common/Step";
+import { t, useI18n } from "../i18n";
 
 interface TestCaseResultProps {
   testCases: TestCase[];
@@ -36,6 +37,7 @@ function TestCaseResult({
   testSuiteName,
   onTestResultChange,
 }: TestCaseResultProps) {
+  const { language } = useI18n();
   // テスト結果の集計を計算する関数
   const calculateCurrentStatusCounts = () => {
     const counts = {
@@ -84,7 +86,7 @@ function TestCaseResult({
   // 保存処理を共通関数として切り出し
   const saveTestResult = async () => {
     if (!fileName.trim()) {
-      alert("ファイル名を入力してください");
+      alert(t("ファイル名を入力してください"));
       return false;
     }
 
@@ -113,7 +115,7 @@ function TestCaseResult({
       if (exists) {
         // 上書き確認
         if (
-          !window.confirm("同名のファイルが既に存在します。上書きしますか？")
+          !window.confirm(t("同名のファイルが既に存在します。上書きしますか？"))
         ) {
           return false;
         }
@@ -130,7 +132,7 @@ function TestCaseResult({
       return true;
     } catch (error) {
       console.error("Failed to save test result:", error);
-      alert("テスト結果の保存に失敗しました");
+      alert(t("テスト結果の保存に失敗しました"));
       return false;
     }
   };
@@ -273,7 +275,7 @@ function TestCaseResult({
                 N/A: {counts.NA}
               </div>
               <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded">
-                未実施: {counts.Unmarked}
+                {t("未実施")}: {counts.Unmarked}
               </div>
             </div>
           );
@@ -283,7 +285,7 @@ function TestCaseResult({
       <div className="mt-4 space-y-4 mb-4">
         <div className="flex items-center space-x-4">
           <label className="text-sm font-medium text-gray-700">
-            過去のテスト結果:
+            {t("過去のテスト結果:")}
           </label>
           <select
             className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
@@ -298,11 +300,11 @@ function TestCaseResult({
               }
             }}
           >
-            <option value="">選択してください</option>
+            <option value="">{t("選択してください")}</option>
             {previousResults.map((result, index) => (
               <option key={index} value={result.test_run_name}>
                 {result.test_run_name} ({result.executed_by} -{" "}
-                {new Date(result.executed_at).toLocaleString()})
+                {new Date(result.executed_at).toLocaleString(language === "en" ? "en-US" : "ja-JP")})
               </option>
             ))}
           </select>
@@ -313,14 +315,14 @@ function TestCaseResult({
               htmlFor="fileName"
               className="text-sm font-medium text-gray-700"
             >
-              ファイル名：
+              {t("ファイル名：")}
             </label>
             <input
               id="fileName"
               type="text"
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
-              placeholder="保存するファイル名を入力"
+              placeholder={t("保存するファイル名を入力")}
               className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
             <span className="text-sm text-gray-500">.json</span>
@@ -330,11 +332,11 @@ function TestCaseResult({
             onClick={async () => {
               const success = await saveTestResult();
               if (success) {
-                alert("テスト結果を保存しました");
+                alert(t("テスト結果を保存しました"));
               }
             }}
           >
-            テスト結果を保存
+            {t("テスト結果を保存")}
           </button>
         </div>
       </div>
@@ -345,19 +347,19 @@ function TestCaseResult({
             className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
           >
             {collapsedCases.length === testCases.length
-              ? "すべて展開"
-              : "すべて折りたたむ"}
+              ? t("すべて展開")
+              : t("すべて折りたたむ")}
           </button>
         </div>
-        <div className="text-sm text-gray-500">Alt + P でプレビュー切替</div>
+        <div className="text-sm text-gray-500">{t("Alt + P でプレビュー切替")}</div>
       </div>
       <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-200">
             <th className="border border-gray-300 px-2 py-1">No</th>
-            <th className="border border-gray-300 px-2 py-1">手順</th>
-            <th className="border border-gray-300 px-2 py-1">期待値</th>
-            <th className="border border-gray-300 px-2 py-1">判定</th>
+            <th className="border border-gray-300 px-2 py-1">{t("手順")}</th>
+            <th className="border border-gray-300 px-2 py-1">{t("期待値")}</th>
+            <th className="border border-gray-300 px-2 py-1">{t("判定")}</th>
           </tr>
         </thead>
         <tbody>
@@ -394,7 +396,7 @@ function TestCaseResult({
                     testCase.result === "NG" ? "bg-red-100 text-red-800" :
                     "bg-gray-100 text-gray-800"
                   }`}>
-                    {testCase.result || "未実施"}
+                    {t(testCase.result || "未実施")}
                   </div>
                 </td>
               </tr>

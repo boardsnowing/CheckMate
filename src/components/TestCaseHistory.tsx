@@ -13,6 +13,7 @@ import {
   extractNewFormat,
   parseLegacyPrecondition
 } from "../utils/preconditionUtils";
+import { localizePrecondition, t, useI18n } from "../i18n";
 
 interface TestCaseHistoryProps {
   testCases: TestCase[];
@@ -47,6 +48,7 @@ function TestCaseHistory({
   testCases,
   testSuiteId,
 }: TestCaseHistoryProps) {
+  const { language } = useI18n();
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
   const [testSuiteName, setTestSuiteName] = useState<string>("");
@@ -178,7 +180,7 @@ ${testCasesXml}  </testsuite>
       }
     } catch (error) {
       console.error("PDFエクスポートに失敗しました:", error);
-      alert("PDFエクスポートに失敗しました");
+      alert(t("PDFエクスポートに失敗しました"));
     }
   };
 
@@ -203,7 +205,7 @@ ${testCasesXml}  </testsuite>
       }
     } catch (error) {
       console.error("JUnitエクスポートに失敗しました:", error);
-      alert("JUnitエクスポートに失敗しました");
+      alert(t("JUnitエクスポートに失敗しました"));
     }
   };
 
@@ -234,7 +236,7 @@ ${testCasesXml}  </testsuite>
       }
     } catch (error) {
       console.error("CSVエクスポートに失敗しました:", error);
-      alert("CSVエクスポートに失敗しました");
+      alert(t("CSVエクスポートに失敗しました"));
     }
   };
 
@@ -252,16 +254,16 @@ ${testCasesXml}  </testsuite>
     const rows: string[] = [];
     
     // 1. 試験名称
-    rows.push(`"試験名称","${processMarkdownForCSV(testSuiteName)}"`);
+    rows.push(`"${t("試験名称")}","${processMarkdownForCSV(testSuiteName)}"`);
     rows.push(""); // 空行
 
     // 2. 前提条件
-    const displayPrecondition = testSuitePreconditionDetails
+    const displayPrecondition = localizePrecondition(testSuitePreconditionDetails
       ? generateUnifiedPrecondition(testSuitePreconditionDetails)
-      : testSuitePrecondition;
+      : testSuitePrecondition || "");
 
     if (displayPrecondition) {
-      rows.push(`"前提条件","${processMarkdownForCSV(displayPrecondition)}"`);
+      rows.push(`"${t("前提条件")}","${processMarkdownForCSV(displayPrecondition)}"`);
       rows.push(""); // 空行
     }
     
@@ -270,23 +272,24 @@ ${testCasesXml}  </testsuite>
     if (counts.OK > 0 || counts.NG > 0)
     {
       //1か所でもマークされていれば登録
-      rows.push('"テスト結果集計"');
+      rows.push(`"${t("テスト結果集計")}"`);
       rows.push(`"OK","${counts.OK}"`);
       rows.push(`"NG","${counts.NG}"`);
       rows.push(`"N/A","${counts.NA}"`);
-      rows.push(`"未実施","${counts.Unmarked}"`);
+      rows.push(`"${t("未実施")}","${counts.Unmarked}"`);
       rows.push(""); // 空行
     }
     
     
     // 4. 試験のヘッダ
-    const headers = ["テストケース", "No", "手順", "期待値", "結果", "コメント"];
+    const headers = ["テストケース", "No", "手順", "期待値", "結果", "コメント"]
+      .map((header) => t(header));
     rows.push(headers.map(header => `"${header}"`).join(","));
     
     // 5. 試験の内容
     result.test_results.forEach((testResult, testIndex) => {
       const testCase = testCases.find(tc => tc.id === testResult.test_case_id);
-      const testCaseName = testCase?.name || "不明なテストケース";
+      const testCaseName = testCase?.name || t("不明なテストケース");
 
       testResult.results.forEach((stepResult, stepIndex) => {
         const row = [
@@ -299,7 +302,7 @@ ${testCasesXml}  </testsuite>
           // 期待値
           `"${processMarkdownForCSV(stepResult.expected)}"`,
           // 結果
-          `"${stepResult.status}"`,
+          `"${t(stepResult.status)}"`,
           // コメント
           `"${processMarkdownForCSV(stepResult.comment)}"`
         ];
@@ -312,7 +315,7 @@ ${testCasesXml}  </testsuite>
   };
 
   const handleDeleteResult = async (fileName: string) => {
-    if (!window.confirm("このテスト結果を削除してもよろしいですか？")) {
+    if (!window.confirm(t("このテスト結果を削除してもよろしいですか？"))) {
       return;
     }
 
@@ -327,12 +330,12 @@ ${testCasesXml}  </testsuite>
       }
     } catch (error) {
       console.error("テスト結果の削除に失敗しました:", error);
-      alert("テスト結果の削除に失敗しました");
+      alert(t("テスト結果の削除に失敗しました"));
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("ja-JP");
+    return new Date(dateString).toLocaleString(language === "en" ? "en-US" : "ja-JP");
   };
 
   const calculateStatusCounts = (result: TestResult) => {
@@ -376,7 +379,7 @@ ${testCasesXml}  </testsuite>
     <div className="space-y-4">
       <div className="flex flex-col space-y-4">
         <div className="bg-white p-4 rounded shadow">
-          <h3 className="text-lg font-semibold mb-4">テスト実行履歴</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("テスト実行履歴")}</h3>
           <div className="flex items-center space-x-4">
             <select
               className="flex-grow p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -388,7 +391,7 @@ ${testCasesXml}  </testsuite>
                 setSelectedResult(selected || null);
               }}
             >
-              <option value="">テスト結果を選択してください</option>
+              <option value="">{t("テスト結果を選択してください")}</option>
               {testResults.map((result) => (
                 <option key={result.test_run_name} value={result.test_run_name}>
                   {result.test_run_name} - {result.executed_by} (
@@ -402,19 +405,19 @@ ${testCasesXml}  </testsuite>
                   onClick={handleExportPDF}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  PDFエクスポート
+                  {t("PDFエクスポート")}
                 </button>
                 <button
                   onClick={handleExportCSV}
                   className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  CSVエクスポート
+                  {t("CSVエクスポート")}
                 </button>
                 <button
                   onClick={handleExportJUnit}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  JUnitエクスポート
+                  {t("JUnitエクスポート")}
                 </button>
                 <button
                   onClick={() =>
@@ -422,7 +425,7 @@ ${testCasesXml}  </testsuite>
                   }
                   className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
-                  削除
+                  {t("削除")}
                 </button>
               </div>
             )}
@@ -441,7 +444,7 @@ ${testCasesXml}  </testsuite>
                     <span className="transform transition-transform duration-200">
                       {isSummaryExpanded ? "▼" : "▶"}
                     </span>
-                    <span className="font-medium">テストケース単位の集計</span>
+                    <span className="font-medium">{t("テストケース単位の集計")}</span>
                   </button>
                 </div>
                 {isSummaryExpanded && (
@@ -450,7 +453,7 @@ ${testCasesXml}  </testsuite>
                       <thead>
                         <tr className="bg-gray-100">
                           <th className="border border-gray-300 px-4 py-2">No.</th>
-                          <th className="border border-gray-300 px-4 py-2">テストケース</th>
+                          <th className="border border-gray-300 px-4 py-2">{t("テストケース")}</th>
                           <th className="border border-gray-300 px-4 py-2">OK</th>
                           <th className="border border-gray-300 px-4 py-2">NG</th>
                           <th className="border border-gray-300 px-4 py-2">N/A</th>
@@ -478,7 +481,7 @@ ${testCasesXml}  </testsuite>
                               <td className="border border-gray-300 px-4 py-2 text-center">{index + 1}</td>
                               <td className="border border-gray-300 px-4 py-2">
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {testCase?.name || "不明なテストケース"}
+                                  {testCase?.name || t("不明なテストケース")}
                                 </ReactMarkdown>
                               </td>
                               <td className="border border-gray-300 px-4 py-2 text-center">
@@ -506,7 +509,7 @@ ${testCasesXml}  </testsuite>
               </div>
               <div className="mb-4">
                 <h3 className="text-lg font-semibold">
-                  テスト結果詳細: {selectedResult.test_run_name}
+                  {t("テスト結果詳細: {{name}}", { name: selectedResult.test_run_name })}
                 </h3>
                 {(() => {
                   const counts = calculateStatusCounts(selectedResult);
@@ -522,7 +525,7 @@ ${testCasesXml}  </testsuite>
                         N/A: {counts.NA}
                       </div>
                       <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded">
-                        未実施: {counts.Unmarked}
+                        {t("未実施")}: {counts.Unmarked}
                       </div>
                     </div>
                   );
@@ -532,22 +535,22 @@ ${testCasesXml}  </testsuite>
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="border border-gray-300 px-4 py-2 w-1/4">
-                      テストケース
+                      {t("テストケース")}
                     </th>
                     <th className="border border-gray-300 px-4 py-2 w-16">
                       No
                     </th>
                     <th className="border border-gray-300 px-4 py-2 w-1/5">
-                      手順
+                      {t("手順")}
                     </th>
                     <th className="border border-gray-300 px-4 py-2 w-1/4">
-                      期待値
+                      {t("期待値")}
                     </th>
                     <th className="border border-gray-300 px-4 py-2 w-20">
-                      結果
+                      {t("結果")}
                     </th>
                     <th className="border border-gray-300 px-4 py-2 w-1/5">
-                      コメント
+                      {t("コメント")}
                     </th>
                   </tr>
                 </thead>
@@ -574,7 +577,7 @@ ${testCasesXml}  </testsuite>
                         historyResult={result.status}
                         historyComment={result.comment}
                         showTestCaseName={stepIndex === 0}
-                        testCaseName={testCase?.name || "不明なテストケース"}
+                        testCaseName={testCase?.name || t("不明なテストケース")}
                         totalStepsInCase={testResult.results.length}
                       />
                     ));
@@ -584,7 +587,7 @@ ${testCasesXml}  </testsuite>
             </div>
           ) : (
             <div className="text-center text-gray-500 py-8">
-              テスト結果を選択してください
+              {t("テスト結果を選択してください")}
             </div>
           )}
         </div>

@@ -10,6 +10,7 @@ import {
 } from "@react-pdf/renderer";
 import { TestCase, PreconditionDetails } from "../types/TestCase";
 import { generateUnifiedPrecondition } from "../utils/preconditionUtils";
+import { localizePrecondition, t } from "../i18n";
 
 interface TestResult {
   test_suite_id: string;
@@ -249,7 +250,7 @@ export const TestResultPDF = ({
     });
 
     return {
-      name: testCase?.name || "不明なテストケース",
+      name: testCase?.name || t("不明なテストケース"),
       counts: statusCounts
     };
   });
@@ -265,7 +266,7 @@ export const TestResultPDF = ({
 
       {/* 集計ページ */}
       <Page size="A4" orientation="landscape" style={styles.page}>
-        <Text style={{ fontSize: 18, marginBottom: 20 }}>テスト結果集計</Text>
+        <Text style={{ fontSize: 18, marginBottom: 20 }}>{t("テスト結果集計")}</Text>
 
         {/* 全体集計 */}
         <View style={styles.summary}>
@@ -279,7 +280,7 @@ export const TestResultPDF = ({
             <Text>N/A: {counts.NA}</Text>
           </View>
           <View style={[styles.summaryItem, { backgroundColor: "#f5f5f5" }]}>
-            <Text>未実施: {counts.Unmarked}</Text>
+            <Text>{t("未実施")}: {counts.Unmarked}</Text>
           </View>
         </View>
 
@@ -287,7 +288,7 @@ export const TestResultPDF = ({
         <View style={[styles.table, { marginTop: 20, marginBottom: 40 }]}>
           <View style={[styles.tableRow, styles.tableHeader]}>
             <Text style={[styles.tableCell, { width: "10%" }]}>No.</Text>
-            <Text style={[styles.tableCell, { width: "50%" }]}>テストケース</Text>
+            <Text style={[styles.tableCell, { width: "50%" }]}>{t("テストケース")}</Text>
             <Text style={[styles.tableCell, { width: "13%" }]}>OK</Text>
             <Text style={[styles.tableCell, { width: "13%" }]}>NG</Text>
             <Text style={[styles.tableCell, { width: "14%" }]}>N/A</Text>
@@ -321,9 +322,9 @@ export const TestResultPDF = ({
 
         return displayPrecondition && (
           <Page size="A4" orientation="landscape" style={styles.page}>
-            <Text style={{ fontSize: 18, marginBottom: 20 }}>前提条件</Text>
+            <Text style={{ fontSize: 18, marginBottom: 20 }}>{t("前提条件")}</Text>
             <View style={{ padding: 10, backgroundColor: "#f9f9f9", borderRadius: 5 }}>
-              {convertMarkdownToStyledText(displayPrecondition)}
+              {convertMarkdownToStyledText(localizePrecondition(displayPrecondition))}
             </View>
           </Page>
         );
@@ -331,15 +332,15 @@ export const TestResultPDF = ({
 
       {/* テスト結果詳細ページ */}
       <Page size="A4" orientation="landscape" style={styles.page}>
-        <Text style={{ fontSize: 18, marginBottom: 20 }}>テスト結果詳細</Text>
+        <Text style={{ fontSize: 18, marginBottom: 20 }}>{t("テスト結果詳細")}</Text>
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.testCase]}>テストケース</Text>
-            <Text style={[styles.tableCell, styles.no]}>No</Text>
-            <Text style={[styles.tableCell, styles.step]}>手順</Text>
-            <Text style={[styles.tableCell, styles.expected]}>期待値</Text>
-            <Text style={[styles.tableCell, styles.result]}>結果</Text>
-            <Text style={[styles.tableCell, styles.comment]}>コメント</Text>
+            <Text style={[styles.tableCell, styles.testCase]}>{t("テストケース")}</Text>
+            <Text style={[styles.tableCell, styles.no]}>{t("No")}</Text>
+            <Text style={[styles.tableCell, styles.step]}>{t("手順")}</Text>
+            <Text style={[styles.tableCell, styles.expected]}>{t("期待値")}</Text>
+            <Text style={[styles.tableCell, styles.result]}>{t("結果")}</Text>
+            <Text style={[styles.tableCell, styles.comment]}>{t("コメント")}</Text>
           </View>
           {result.test_results.map((testResult, index) => {
             const testCase = testCases.find(
@@ -353,7 +354,7 @@ export const TestResultPDF = ({
                 {stepIndex === 0 && (
                   <View style={[styles.tableCell, styles.testCase]}>
                     {convertMarkdownToStyledText(
-                      testCase?.name || "不明なテストケース"
+                      testCase?.name || t("不明なテストケース")
                     )}
                   </View>
                 )}
@@ -370,7 +371,7 @@ export const TestResultPDF = ({
                   {convertMarkdownToStyledText(result.expected)}
                 </View>
                 <Text style={[styles.tableCell, styles.result]}>
-                  {result.status}
+                  {t(result.status)}
                 </Text>
                 <View style={[styles.tableCell, styles.comment]}>
                   {convertMarkdownToStyledText(result.comment)}

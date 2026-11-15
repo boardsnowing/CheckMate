@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { PreconditionDetails } from "../types/TestCase";
 import { parseLegacyPrecondition, generateUnifiedPrecondition, isEmpty } from "../utils/preconditionUtils";
+import { localizePrecondition, t } from "../i18n";
 
 interface PreconditionEditProps {
   isOpen: boolean;
@@ -42,9 +43,11 @@ function AccordionSection({
             <span className="transform transition-transform duration-200">
               {isExpanded ? "▼" : "▶"}
             </span>
-            <span className="font-medium">{title}</span>
+            <span className="font-medium">{t(title)}</span>
             {value && (
-              <span className="text-sm text-gray-600 ml-2">({value.length}文字)</span>
+              <span className="text-sm text-gray-600 ml-2">
+                {t("({{count}}文字)", { count: value.length })}
+              </span>
             )}
           </button>
           {isExpanded && value && (
@@ -52,7 +55,7 @@ function AccordionSection({
               onClick={() => setShowPreview(!showPreview)}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
-              {showPreview ? "編集" : "プレビュー"}
+              {showPreview ? t("編集") : t("プレビュー")}
             </button>
           )}
         </div>
@@ -152,7 +155,7 @@ function PreconditionEdit({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-11/12 h-5/6 flex flex-col p-4 max-w-4xl">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">前提条件の編集</h2>
+          <h2 className="text-xl font-bold">{t("前提条件の編集")}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-xl"
@@ -167,7 +170,7 @@ function PreconditionEdit({
               title="目的"
               value={details.purpose || ""}
               onChange={(value) => updateDetail("purpose", value)}
-              placeholder="テストの目的や実現したい目標を記述してください（Markdown形式で記述可能）"
+              placeholder={t("テストの目的や実現したい目標を記述してください（Markdown形式で記述可能）")}
               isExpanded={expandedSections.purpose}
               onToggle={() => toggleSection("purpose")}
             />
@@ -176,7 +179,7 @@ function PreconditionEdit({
               title="環境"
               value={details.environment || ""}
               onChange={(value) => updateDetail("environment", value)}
-              placeholder="テスト実行に必要な環境や条件を記述してください（Markdown形式で記述可能）"
+              placeholder={t("テスト実行に必要な環境や条件を記述してください（Markdown形式で記述可能）")}
               isExpanded={expandedSections.environment}
               onToggle={() => toggleSection("environment")}
             />
@@ -185,7 +188,7 @@ function PreconditionEdit({
               title="使用ツール"
               value={details.tools || ""}
               onChange={(value) => updateDetail("tools", value)}
-              placeholder="テストで使用するツールやソフトウェアを記述してください（Markdown形式で記述可能）"
+              placeholder={t("テストで使用するツールやソフトウェアを記述してください（Markdown形式で記述可能）")}
               isExpanded={expandedSections.tools}
               onToggle={() => toggleSection("tools")}
             />
@@ -194,7 +197,7 @@ function PreconditionEdit({
               title="事前準備"
               value={details.preparation || ""}
               onChange={(value) => updateDetail("preparation", value)}
-              placeholder="テスト実行前に行う準備や設定を記述してください（Markdown形式で記述可能）"
+              placeholder={t("テスト実行前に行う準備や設定を記述してください（Markdown形式で記述可能）")}
               isExpanded={expandedSections.preparation}
               onToggle={() => toggleSection("preparation")}
             />
@@ -202,10 +205,10 @@ function PreconditionEdit({
 
           {hasContent && (
             <div className="mt-4 p-3 bg-gray-50 border rounded">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">統合プレビュー</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">{t("統合プレビュー")}</h3>
               <div className="prose prose-sm max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {generateUnifiedPrecondition(details)}
+                  {localizePrecondition(generateUnifiedPrecondition(details))}
                 </ReactMarkdown>
               </div>
             </div>
@@ -217,13 +220,13 @@ function PreconditionEdit({
             onClick={onClose}
             className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
           >
-            キャンセル
+            {t("キャンセル")}
           </button>
           <button
             onClick={handleSave}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            保存
+            {t("保存")}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { TestCase } from "../types/TestCase";
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
 import { Fragment } from "react";
+import { t } from "../i18n";
 
 interface TestCaseDuplicateModalProps {
   isOpen: boolean;
@@ -48,7 +49,7 @@ function TestCaseDuplicateModal({
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900 mb-4"
                 >
-                  複製したテストケースの挿入位置を選択
+                  {t("複製したテストケースの挿入位置を選択")}
                 </DialogTitle>
 
                 <div className="mt-2 space-y-2">
@@ -57,7 +58,7 @@ function TestCaseDuplicateModal({
                     onClick={() => onSelect(0)}
                     className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded"
                   >
-                    先頭に挿入
+                    {t("先頭に挿入")}
                   </button>
 
                   {/* 各テストケースの後に挿入するオプション */}
@@ -70,7 +71,7 @@ function TestCaseDuplicateModal({
                       }`}
                       disabled={index === sourceIndex}
                     >
-                      {`「${testCase.name}」の後に挿入`}
+                      {t("「{{name}}」の後に挿入", { name: testCase.name })}
                     </button>
                   ))}
                 </div>
@@ -81,7 +82,7 @@ function TestCaseDuplicateModal({
                     className="px-4 py-2 text-sm font-medium text-gray-900 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
                     onClick={onClose}
                   >
-                    キャンセル
+                    {t("キャンセル")}
                   </button>
                 </div>
               </DialogPanel>

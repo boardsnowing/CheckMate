@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { PreconditionDetails } from "../types/TestCase";
 import { generateUnifiedPrecondition, isEmpty } from "../utils/preconditionUtils";
+import { localizePrecondition, t } from "../i18n";
 
 interface PreconditionViewProps {
   precondition?: string;
@@ -19,7 +20,7 @@ interface SectionViewProps {
 function SectionView({ title, content }: SectionViewProps) {
   return (
     <div className="mb-3">
-      <h4 className="text-sm font-semibold text-gray-700 mb-1">## {title}</h4>
+      <h4 className="text-sm font-semibold text-gray-700 mb-1">## {t(title)}</h4>
       <div className="pl-3 border-l-2 border-gray-200">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
@@ -56,12 +57,12 @@ function PreconditionView({
     return (
       <div className="mb-4 p-4 border rounded bg-gray-50">
         <div className="flex justify-between items-center">
-          <span className="text-gray-500">前提条件なし</span>
+          <span className="text-gray-500">{t("前提条件なし")}</span>
           <button
             onClick={onEdit}
             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
           >
-            追加
+            {t("追加")}
           </button>
         </div>
       </div>
@@ -69,7 +70,9 @@ function PreconditionView({
   }
 
   // 表示用のコンテンツを決定
-  const displayContent = hasStructuredData ? generateUnifiedPrecondition(preconditionDetails!) : precondition!;
+  const displayContent = localizePrecondition(
+    hasStructuredData ? generateUnifiedPrecondition(preconditionDetails!) : precondition!,
+  );
 
   return (
     <div className="mb-4 border rounded bg-gray-50">
@@ -81,7 +84,7 @@ function PreconditionView({
           <span className="transform transition-transform duration-200">
             {isExpanded ? "▼" : "▶"}
           </span>
-          <span className="font-medium">前提条件</span>
+          <span className="font-medium">{t("前提条件")}</span>
         </button>
         <div className="flex items-center space-x-2">
           {hasStructuredData && (
@@ -94,7 +97,7 @@ function PreconditionView({
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                項目別
+                {t("項目別")}
               </button>
               <button
                 onClick={() => setViewMode("unified")}
@@ -104,7 +107,7 @@ function PreconditionView({
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                統合
+                {t("統合")}
               </button>
             </div>
           )}
@@ -112,7 +115,7 @@ function PreconditionView({
             onClick={onEdit}
             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
           >
-            編集
+            {t("編集")}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { TestStep } from "../types/TestCase";
+import { t } from "../i18n";
 
 interface TestTemplate {
   id: string;
@@ -35,7 +36,7 @@ function TestTemplateList() {
   };
 
   const handleDelete = async (templateId: string) => {
-    if (!confirm("このテンプレートを削除してもよろしいですか？")) {
+    if (!confirm(t("このテンプレートを削除してもよろしいですか？"))) {
       return;
     }
 
@@ -49,24 +50,24 @@ function TestTemplateList() {
   };
 
   if (loading) {
-    return <div className="p-4">読み込み中...</div>;
+    return <div className="p-4">{t("読み込み中...")}</div>;
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">{error}</div>;
+    return <div className="p-4 text-red-500">{t(error)}</div>;
   }
 
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold">テストテンプレート一覧</h1>
+          <h1 className="text-xl font-bold">{t("テストテンプレート一覧")}</h1>
         </div>
         <Link
           to="/template/create"
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
-          新規作成
+          {t("新規作成")}
         </Link>
       </div>
       <div className="flex items-center gap-4">
@@ -74,12 +75,12 @@ function TestTemplateList() {
           to="/"
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
         >
-          戻る
+          {t("戻る")}
         </Link>
       </div>
 
       {templates.length === 0 ? (
-        <p className="text-gray-500">テンプレートがありません</p>
+        <p className="text-gray-500">{t("テンプレートがありません")}</p>
       ) : (
         <div className="grid gap-4">
           {templates.map((template) => (
@@ -94,13 +95,13 @@ function TestTemplateList() {
                     to={`/template/edit/${template.id}`}
                     className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
                   >
-                    編集
+                    {t("編集")}
                   </Link>
                   <button
                     onClick={() => handleDelete(template.id)}
                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
                   >
-                    削除
+                    {t("削除")}
                   </button>
                 </div>
               </div>
@@ -108,7 +109,7 @@ function TestTemplateList() {
                 <p className="text-gray-600 mb-2">{template.description}</p>
               )}
               <div className="text-sm text-gray-500">
-                ステップ数: {template.steps.length}
+                {t("ステップ数: {{count}}", { count: template.steps.length })}
               </div>
             </div>
           ))}
