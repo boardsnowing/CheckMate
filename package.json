@@ -14,7 +14,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.10",
     "@react-pdf/renderer": "^4.9.0",
-    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/api": "^2.12.5",
     "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-fs": "^2.7.1",
     "@tauri-apps/plugin-notification": "^2.8.1",
